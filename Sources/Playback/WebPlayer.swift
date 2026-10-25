@@ -947,6 +947,15 @@ final class WebPlayer: NSObject {
         case .ended:
             let resume = AVAudioSession.InterruptionOptions(rawValue: options ?? 0).contains(.shouldResume)
             self.log.log("audio", "interruption ENDED shouldResume=\(resume)")
+            // The page's own media playback interrupts this session (BEGAN right after each
+            // `playing`), and iOS ends that interruption when the app comes to the foreground,
+            // e.g. from the lock screen player. Reactivating then takes the audio back from the
+            // page: device logs show a `pause` ~800 ms later, and once the page resumed on its
+            // own into a silent output (position frozen, then advancing with no sound).
+            if self.state.isPlaying, !resume {
+                self.log.log("audio", "page is playing: leaving the session to it")
+                return
+            }
             Task.detached(priority: .userInitiated) { _ = Self.activateAudioSession(configuring: false) }
             if resume { self.resume() }
         @unknown default:
