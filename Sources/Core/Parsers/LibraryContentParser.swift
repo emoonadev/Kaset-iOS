@@ -269,6 +269,29 @@ enum LibraryContentParser {
         return LibraryContentIdentity.deduplicatedArtists(artists)
     }
 
+    /// Followed artists of one page, the first one or a continuation, and the token of the next page.
+    static func parseLibraryArtistsPage(_ data: [String: Any]) -> (artists: [Artist], nextPage: String?) {
+        var artists = Self.parseLibraryArtists(data)
+        var nextPage: String?
+        if let shelf = ResponseTreeSearch.firstDictionary(named: "musicShelfRenderer", in: data) {
+            nextPage = Self.nextPage(from: shelf, itemsKey: "contents")
+        }
+        for (key, itemsKey) in [("musicShelfContinuation", "contents"), ("appendContinuationItemsAction", "continuationItems")] {
+            guard let continuation = ResponseTreeSearch.firstDictionary(named: key, in: data),
+                  let items = continuation[itemsKey] as? [[String: Any]]
+            else { continue }
+            var ignoredPlaylists: [Playlist] = []
+            var ignoredAlbums: [Album] = []
+            var ignoredPodcastShows: [PodcastShow] = []
+            Self.appendResponsiveLibraryItems(
+                items, playlists: &ignoredPlaylists, albums: &ignoredAlbums,
+                artists: &artists, podcastShows: &ignoredPodcastShows
+            )
+            nextPage = Self.nextPage(from: continuation, itemsKey: itemsKey)
+        }
+        return (LibraryContentIdentity.deduplicatedArtists(artists), nextPage)
+    }
+
     /// Parses the uploaded songs browse endpoint into a virtual playlist tile for Library.
     static func parseUploadedSongsPlaylist(_ data: [String: Any]) -> Playlist? {
         let detail = PlaylistParser.parsePlaylistWithContinuation(data, playlistId: Playlist.uploadedSongsBrowseID).detail

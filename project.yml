@@ -22,6 +22,9 @@ targets:
         CFBundleDevelopmentRegion: en
         UIBackgroundModes:
           - audio
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - dev.emoona.kaset.newReleases
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

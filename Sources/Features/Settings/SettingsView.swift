@@ -13,6 +13,7 @@ struct SettingsView: View {
     @AppStorage("settings.handlePhoneCalls") private var handlePhoneCalls = true
     @AppStorage(BufferPolicy.adaptiveQualityStorageKey) private var adaptiveQuality = true
     @AppStorage(BufferPolicy.extendedStorageKey) private var extendedBuffer = false
+    @AppStorage(NewReleaseWatcher.notificationsStorageKey) private var newReleaseNotifications = true
 
     @State private var accounts: [UserAccount] = []
     @State private var isSwitching = false
@@ -46,6 +47,8 @@ struct SettingsView: View {
                 } footer: {
                     Text("Low quality is used after the music cut out for lack of data, or in Low Data Mode, until you are back on Wi-Fi. The longer buffer asks the page to load up to 4 minutes of the current song ahead; it fully applies after relaunching the app.")
                 }
+
+                self.newReleasesSection
 
                 Section {
                     Picker("Content language", selection: self.$language) {
@@ -82,6 +85,44 @@ struct SettingsView: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } }
             }
             .task(id: self.environment.auth.state) { await self.loadAccounts() }
+        }
+    }
+
+    private var newReleasesSection: some View {
+        let watcher = self.environment.newReleases
+        return Section {
+            Toggle("Notify me at 8:00", isOn: self.$newReleaseNotifications)
+                .onChange(of: self.newReleaseNotifications) { _, isOn in
+                    guard isOn else { return }
+                    Task {
+                        if await !watcher.requestNotificationPermission() { self.newReleaseNotifications = false }
+                    }
+                }
+            Button {
+                Task { await watcher.checkNow(client: self.environment.client, auth: self.environment.auth) }
+            } label: {
+                LabeledContent("Check now") {
+                    if watcher.isChecking {
+                        ProgressView()
+                    } else if let last = watcher.state.lastCheck {
+                        Text(last, format: .relative(presentation: .named))
+                    }
+                }
+            }
+            .disabled(watcher.isChecking || self.environment.auth.state != .signedIn)
+            if let result = watcher.state.lastResult {
+                if let failure = result.failure {
+                    Text(failure).font(.footnote).foregroundStyle(.red)
+                } else {
+                    Text("\(result.checked) of \(result.artists) artists checked · \(result.found) new · \(watcher.shelf.count) on Home")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("New releases")
+        } footer: {
+            Text("Albums and singles from the artists you follow and play the most show up on Home. The check runs each morning when iOS allows it (Background App Refresh must be on), otherwise when you open the app.")
         }
     }
 

@@ -32,6 +32,10 @@ Legend: `[x]` shipped · `[ ]` planned.
       an underrun or in Low Data Mode, buffer-ahead readout in the log and health screen
 - [x] Play without a page load when YouTube Music's router is gone (`yt-navigate` fallback)
 - [x] Play after a media error (device locked while paused) reloads the track at its position
+- [x] New releases from followed artists, most played first (from the YouTube Music history):
+      "New from your artists" shelf on Home, one local notification at 8:00 (on by default,
+      *Settings → New releases*); background refresh from 7:00 plus a catch-up when the app
+      opens, no server
 - [x] Artist mixes (*Home → My Mixes*): pick artists, the app creates a private YouTube Music
       playlist of their songs, shuffled and interleaved; settings live in the playlist
       description so mixes sync across devices; *Regenerate* swaps in a new pick. Options:
@@ -43,6 +47,8 @@ Legend: `[x]` shipped · `[ ]` planned.
   - `yt-navigate` fallback: a play from the app logs `yt-navigate watch …` with no page load
     after it; send the `[router] ytmusic-app: …` line
   - Locking while paused, then play: the track comes back at its position
+  - New releases: the morning background refresh logs `[releases] background: checked …`
+    (iOS picks the time, from 7:00); the notification shows at 8:00
 - [ ] **Direct queue reorder**: the page's queue object has no move method (`removeItem`,
       `shuffle`, `selectQueueItem` and an internal `store.dispatch` only); would need the
       internal action name, so on hold
@@ -59,8 +65,8 @@ Legend: `[x]` shipped · `[ ]` planned.
       recap data
 - [ ] **On this day**: what I was playing a month / a year ago, one tap to play it again
       (recap data; useful after a few months)
-- [ ] **New releases from my artists**: recent albums and singles from the artists I follow or
-      play most, with optional local notifications (background refresh, no server)
+- [ ] **New releases ranked by my own play counts**: today the order comes from the YouTube Music
+      history page (recent plays only); the recap's play log would give a longer view
 - [ ] **Find a song by its lyrics**: type a line you remember, LRCLib full-text search finds the
       song, YouTube Music search opens it
 - [ ] **Music for a set duration**: "45 min" builds a queue that fits the trip or the workout

@@ -120,6 +120,50 @@ extension YTMusicClient {
         return ArtistParser.parseArtistDetail(data, artistId: id)
     }
 
+    /// Albums and singles of an artist page, uncached: the new-releases check runs through
+    /// many artists and must neither read stale pages nor evict what the screens cached.
+    func getArtistReleases(id: String) async throws -> (albums: [Album], singles: [Album]) {
+        let data = try await self.request("browse", body: ["browseId": id])
+        let detail = ArtistParser.parseArtistDetail(data, artistId: id)
+        return (detail.albums, detail.singles)
+    }
+
+    /// Publication date of a video, from the player response's `microformat`. For the first track
+    /// of an album or single it is the release date (artist pages only give the year). Uncached.
+    func getPublishDate(videoId: String) async throws -> Date? {
+        let data = try await self.request("player", body: ["videoId": videoId])
+        guard let microformat = (data["microformat"] as? [String: Any])?["microformatDataRenderer"] as? [String: Any],
+              let text = microformat["publishDate"] as? String ?? microformat["uploadDate"] as? String
+        else { return nil }
+        return Self.parsePublishDate(text)
+    }
+
+    /// `2023-03-30T06:00:07-07:00`, or a bare `2023-03-30`.
+    nonisolated static func parsePublishDate(_ text: String) -> Date? {
+        let full = ISO8601DateFormatter()
+        if let date = full.date(from: text) { return date }
+        let day = ISO8601DateFormatter()
+        day.formatOptions = [.withFullDate]
+        return day.date(from: text)
+    }
+
+    /// Every artist the account is subscribed to (all pages, up to `maxPages`), uncached.
+    func getSubscribedArtists(maxPages: Int = 20) async throws -> [Artist] {
+        let data = try await self.request(
+            "browse", body: ["browseId": "FEmusic_library_corpus_artists", "params": "ggMCCAU="]
+        )
+        var page = LibraryContentParser.parseLibraryArtistsPage(data)
+        var artists = page.artists
+        var pages = 1
+        while let token = page.nextPage, pages < maxPages {
+            let next = try await self.request("browse", body: ["continuation": token], authPolicy: .required)
+            page = LibraryContentParser.parseLibraryArtistsPage(next)
+            artists += page.artists
+            pages += 1
+        }
+        return LibraryContentIdentity.deduplicatedArtists(artists)
+    }
+
     /// Every song of an artist (the page behind "See all" on the top songs shelf).
     func getArtistSongs(browseId: String, params: String?) async throws -> [Song] {
         var body: [String: Any] = ["browseId": browseId]

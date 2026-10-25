@@ -5,6 +5,7 @@ import SwiftUI
 /// keeps running.
 struct RootView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         @Bindable var environment = self.environment
@@ -29,6 +30,22 @@ struct RootView: View {
                 .allowsHitTesting(false)
         }
         .task { await environment.start() }
+        .task(id: environment.auth.state) {
+            guard environment.auth.state == .signedIn else { return }
+            await environment.newReleases.requestNotificationPermissionIfNeeded()
+            await environment.newReleases.checkIfDue(client: environment.client, auth: environment.auth)
+        }
+        .onChange(of: self.scenePhase) { _, phase in
+            switch phase {
+            case .active:
+                guard environment.auth.state == .signedIn else { return }
+                Task { await environment.newReleases.checkIfDue(client: environment.client, auth: environment.auth) }
+            case .background:
+                environment.newReleases.scheduleBackgroundCheck()
+            default:
+                break
+            }
+        }
         .sheet(isPresented: $environment.isLoginPresented) {
             LoginView { Task { await environment.loginFinished() } }
         }

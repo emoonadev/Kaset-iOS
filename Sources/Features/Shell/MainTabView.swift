@@ -27,6 +27,7 @@ struct MainTabView: View {
             }
         }
         .queueNoticeBanner()
+        .onChange(of: NotificationRouter.shared.homeRequest) { self.selection = .home }
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
             MiniPlayerView(
