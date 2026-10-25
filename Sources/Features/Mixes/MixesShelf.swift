@@ -22,6 +22,11 @@ struct MixesShelf: View {
                 .accessibilityAddTraits(.isHeader)
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: 16) {
+                    Button { self.startNewMix() } label: {
+                        NewMixCard(isFirst: library.mixes.isEmpty, isCreating: library.isCreating)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(library.isCreating)
                     ForEach(library.mixes) { mix in
                         let entity = Self.entity(for: mix)
                         NavigationLink(value: entity) {
@@ -38,11 +43,6 @@ struct MixesShelf: View {
                         .neutralMenuTint()
                         .contextMenu { self.menu(for: mix) }
                     }
-                    Button { self.startNewMix() } label: {
-                        NewMixCard(isFirst: library.mixes.isEmpty, isCreating: library.isCreating)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(library.isCreating)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 4)
