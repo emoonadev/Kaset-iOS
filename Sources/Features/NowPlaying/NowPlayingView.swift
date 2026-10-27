@@ -219,8 +219,8 @@ struct NowPlayingView: View {
                 ArtistDetailView(id: artist.id, fallbackName: artist.name)
                     .entityDestinations()
                     .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") { self.artistToShow = nil }
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button(role: .close) { self.artistToShow = nil }
                         }
                     }
             }
