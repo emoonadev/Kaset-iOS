@@ -34,11 +34,27 @@
         }
       }
     },
+    "%@ artists played for the first time" : {
+
+    },
     "%@ checks need a track playing." : {
 
     },
     "%@ failing" : {
 
+    },
+    "%@ min" : {
+
+    },
+    "%@ min · %@ plays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ min · %2$@ plays"
+          }
+        }
+      }
     },
     "%@ of %@ artists checked · %@ new · %@ on Home" : {
       "localizations" : {
@@ -50,8 +66,64 @@
         }
       }
     },
+    "%@ plays · %@ artists" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ plays · %2$@ artists"
+          }
+        }
+      }
+    },
+    "%@ plays since %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ plays since %2$@"
+          }
+        }
+      }
+    },
     "%@ songs" : {
 
+    },
+    "%@×" : {
+
+    },
+    "%lld artists played for the first time" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld artistes écoutés pour la première fois"
+          }
+        }
+      }
+    },
+    "%lld min" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
+          }
+        }
+      }
+    },
+    "%lld min · %lld plays" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld min · %2$lld écoutes"
+          }
+        }
+      }
     },
     "%lld new releases" : {
       "extractionState" : "stale",
@@ -71,6 +143,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld artistes vérifiés sur %2$lld · %3$lld nouveautés · %4$lld sur l'Accueil"
+          }
+        }
+      }
+    },
+    "%lld plays · %lld artists" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld écoutes · %2$lld artistes"
+          }
+        }
+      }
+    },
+    "%lld plays since %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld écoutes depuis le %2$@"
           }
         }
       }
@@ -706,6 +800,16 @@
         }
       }
     },
+    "Hours of the day" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heures de la journée"
+          }
+        }
+      }
+    },
     "id=%@ next=%@ prev=%@" : {
       "localizations" : {
         "en" : {
@@ -793,6 +897,16 @@
         }
       }
     },
+    "Listening recap" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Récap d’écoute"
+          }
+        }
+      }
+    },
     "Log" : {
 
     },
@@ -850,6 +964,20 @@
         }
       }
     },
+    "minutes · %@ plays" : {
+
+    },
+    "minutes · %lld plays" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "minutes · %lld écoutes"
+          }
+        }
+      }
+    },
     "Mix" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -867,6 +995,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mix de %@"
+          }
+        }
+      }
+    },
+    "Month" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mois"
           }
         }
       }
@@ -889,6 +1028,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plus"
+          }
+        }
+      }
+    },
+    "Mostly around %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surtout vers %@"
+          }
+        }
+      }
+    },
+    "My listening recap" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mon récap d’écoute"
           }
         }
       }
@@ -954,6 +1113,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nouvel album de %@"
+          }
+        }
+      }
+    },
+    "New artists" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveaux artistes"
           }
         }
       }
@@ -1055,6 +1224,16 @@
         }
       }
     },
+    "No songs were played in this period." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun titre écouté sur cette période."
+          }
+        }
+      }
+    },
     "Normal" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1084,6 +1263,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rien ici pour l'instant."
+          }
+        }
+      }
+    },
+    "Nothing played" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rien écouté"
           }
         }
       }
@@ -1164,6 +1354,17 @@
         }
       }
     },
+    "Period" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Période"
+          }
+        }
+      }
+    },
     "Pick your artists" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1235,6 +1436,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Playlists"
+          }
+        }
+      }
+    },
+    "Plays are recorded on this device once a song has played for 30 seconds. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “%@” in it." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les écoutes sont enregistrées sur cet appareil dès qu’un titre a été joué 30 secondes. Pour les partager entre appareils, choisissez le même dossier iCloud Drive sur chacun : l’app y garde un fichier nommé « %@ »."
+          }
+        }
+      }
+    },
+    "Plays are recorded on this iPhone from now on, once a song has played for 30 seconds." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les écoutes sont enregistrées sur cet iPhone à partir de maintenant, dès qu’un titre a été joué 30 secondes."
           }
         }
       }
@@ -1321,6 +1542,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Radio"
+          }
+        }
+      }
+    },
+    "Recap" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Récap"
           }
         }
       }
@@ -1707,12 +1939,56 @@
         }
       }
     },
+    "Stop syncing" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter la synchro"
+          }
+        }
+      }
+    },
     "Suggestions" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Suggestions"
+          }
+        }
+      }
+    },
+    "Sync folder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dossier de synchro"
+          }
+        }
+      }
+    },
+    "Sync now" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser"
+          }
+        }
+      }
+    },
+    "Sync with iCloud Drive…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser avec iCloud Drive…"
           }
         }
       }
@@ -1762,8 +2038,17 @@
         }
       }
     },
+    "Top artists" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artistes les plus écoutés"
+          }
+        }
+      }
+    },
     "Top songs" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1823,6 +2108,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vidéos"
+          }
+        }
+      }
+    },
+    "vs. the period before" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "par rapport à la période précédente"
+          }
+        }
+      }
+    },
+    "Week" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semaine"
+          }
+        }
+      }
+    },
+    "Year" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Année"
           }
         }
       }

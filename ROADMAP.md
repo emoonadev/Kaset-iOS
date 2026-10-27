@@ -41,6 +41,12 @@ Legend: `[x]` shipped · `[ ]` planned.
       description so mixes sync across devices; *Regenerate* swaps in a new pick. Options:
       25 / 50 songs, similar artists, skip recently played, discoveries (30 % lesser-known
       songs). Base for *Playlist from a sentence*
+- [x] Listening recap (*Collections → Recap*): week / month / year with minutes, plays, top
+      artists and songs, hours of the day, new artists, change from the period before, and a
+      shareable card. Plays are recorded on the device (one counts after 30 s, half the song
+      when shorter; paused time and ads do not count); no backfill. Optional sync through a
+      file in an iCloud Drive folder picked in *Settings → Listening recap* (merged by play,
+      no CloudKit)
 - [ ] **Verify on device** (code shipped, not yet measured):
   - Longer buffer (*Settings → Bad network*, relaunch): do the `[buffer] … ahead=` log lines
     go well past ~25-35 s? If not, YouTube's `enable_server_driven_readahead` probably caps it
@@ -57,10 +63,6 @@ Legend: `[x]` shipped · `[ ]` planned.
 
 ## Music features
 
-- [ ] **Listening recap**: week / month / year — minutes, top artists, top tracks, hours of
-      the day, new artists; shareable card. Plays are recorded on the device (a play counts
-      after 30 s); starts empty, no backfill. Sync through a file in iCloud Drive that I pick
-      once (document picker + bookmark): CloudKit needs a paid developer account
 - [ ] **My stats on artist pages**: plays, minutes, favourite track and first listen, from the
       recap data
 - [ ] **On this day**: what I was playing a month / a year ago, one tap to play it again

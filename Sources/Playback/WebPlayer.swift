@@ -45,6 +45,8 @@ final class WebPlayer: NSObject {
     private(set) var pageURL: String?
     /// Last player health probe (run a few seconds after each track change, or on demand).
     private(set) var healthReport: PlayerHealthReport?
+    /// Called with every state the page reports (the listening recap counts plays from it).
+    @ObservationIgnored var onStateChange: ((PlaybackState, Date) -> Void)?
 
     @ObservationIgnored private let log = SpikeLog.shared
     @ObservationIgnored private let proxy = MessageProxy()
@@ -555,6 +557,7 @@ final class WebPlayer: NSObject {
             self.lastEvent = event
             self.eventSerial += 1
             self.state = self.state.applying(message, at: now)
+            self.onStateChange?(self.state, now)
             // Playback started again (lock-screen / widget play, user tap) while no call is
             // active: the page must never stay in its "stand down" mode.
             if self.pageIsInterrupted, !self.isInCall, self.state.isPlaying { self.releasePageInterruption() }

@@ -38,10 +38,13 @@ struct RootView: View {
         .onChange(of: self.scenePhase) { _, phase in
             switch phase {
             case .active:
+                Task { await environment.listening.sync() }
                 guard environment.auth.state == .signedIn else { return }
                 Task { await environment.newReleases.checkIfDue(client: environment.client, auth: environment.auth) }
             case .background:
                 environment.newReleases.scheduleBackgroundCheck()
+                environment.listening.flush()
+                Task { await environment.listening.sync() }
             default:
                 break
             }

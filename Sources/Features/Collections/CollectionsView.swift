@@ -7,6 +7,7 @@ struct CollectionsView: View {
         case library = "Library"
         case liked = "Liked music"
         case history = "History"
+        case recap = "Recap"
 
         var id: String { self.rawValue }
     }
@@ -23,7 +24,7 @@ struct CollectionsView: View {
                 if self.environment.auth.state == .signedIn {
                     VStack(spacing: 0) {
                         Picker("Section", selection: self.$selection) {
-                            ForEach(Segment.allCases) { Text($0.rawValue).tag($0) }
+                            ForEach(Segment.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                         }
                         .pickerStyle(.segmented)
                         .padding(.horizontal)
@@ -38,6 +39,7 @@ struct CollectionsView: View {
                             } else {
                                 ProgressView()
                             }
+                        case .recap: RecapView()
                         }
                     }
                 } else {

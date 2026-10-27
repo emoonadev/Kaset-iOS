@@ -17,6 +17,7 @@ struct SettingsView: View {
 
     @State private var accounts: [UserAccount] = []
     @State private var isSwitching = false
+    @State private var isPickingSyncFolder = false
 
     var body: some View {
         NavigationStack {
@@ -49,6 +50,8 @@ struct SettingsView: View {
                 }
 
                 self.newReleasesSection
+
+                self.recapSection
 
                 Section {
                     Picker("Content language", selection: self.$language) {
@@ -123,6 +126,46 @@ struct SettingsView: View {
             Text("New releases")
         } footer: {
             Text("Albums and singles from the artists you follow and play the most show up on Home. The check runs each morning when iOS allows it (Background App Refresh must be on), otherwise when you open the app.")
+        }
+    }
+
+    private var recapSection: some View {
+        let listening = self.environment.listening
+        return Section {
+            if let folder = listening.syncFolderName {
+                LabeledContent("Sync folder", value: folder)
+                Button {
+                    Task { await listening.sync() }
+                } label: {
+                    LabeledContent("Sync now") {
+                        if listening.isSyncing {
+                            ProgressView()
+                        } else if let last = listening.lastSync {
+                            Text(last, format: .relative(presentation: .named))
+                        }
+                    }
+                }
+                .disabled(listening.isSyncing)
+                Button("Stop syncing", role: .destructive) { listening.stopSyncing() }
+            } else {
+                Button("Sync with iCloud Drive…") { self.isPickingSyncFolder = true }
+            }
+            if let error = listening.syncError {
+                Text(error).font(.footnote).foregroundStyle(.red)
+            }
+            if let first = listening.plays.first {
+                Text("\(listening.plays.count) plays since \(first.startedAt.formatted(date: .abbreviated, time: .omitted))")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Listening recap")
+        } footer: {
+            Text("Plays are recorded on this device once a song has played for 30 seconds. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “\(ListeningHistory.syncFileName)” in it.")
+        }
+        .fileImporter(isPresented: self.$isPickingSyncFolder, allowedContentTypes: [.folder]) { result in
+            guard case let .success(folder) = result else { return }
+            Task { await listening.setSyncFolder(folder) }
         }
     }
 

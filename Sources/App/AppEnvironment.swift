@@ -10,6 +10,7 @@ final class AppEnvironment {
     let player: WebPlayer
     let mixes = ArtistMixLibrary()
     let newReleases = NewReleaseWatcher()
+    let listening = ListeningHistory()
     private let accountSwitcher = AccountSwitcher()
 
     /// Photo of the selected account, for the navigation bar button.
@@ -31,6 +32,8 @@ final class AppEnvironment {
         self.client = YTMusicClient(auth: auth)
         self.player = WebPlayer()
         self.client.brandIdProvider = { AccountSwitcher.storedBrandId }
+        let listening = self.listening
+        self.player.onStateChange = { state, date in listening.playbackChanged(state, at: date) }
     }
 
     /// Plays an entity without opening its page. Playlists use their id as the queue; an album's
