@@ -144,9 +144,15 @@ final class ArtistMixLibrary {
     func delete(_ mix: ArtistMix, environment: AppEnvironment) async throws {
         guard let id = mix.playlistId else { return }
         try await environment.client.deletePlaylist(id: id)
-        self.mixes.removeAll { $0.playlistId == id }
-        self.persist()
+        self.forget(playlistId: id)
         environment.libraryRevision += 1
+    }
+
+    /// Drops the mix backed by a playlist deleted elsewhere (e.g. from the playlist screen).
+    func forget(playlistId id: String) {
+        let clean = MediaEntity.watchPlaylistId(id)
+        self.mixes.removeAll { $0.playlistId.map(MediaEntity.watchPlaylistId) == clean }
+        self.persist()
     }
 
     /// Plays the mix's playlist from the top.

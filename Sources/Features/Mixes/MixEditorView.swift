@@ -159,13 +159,35 @@ struct MixEditorView: View {
                 }
             }
             Toggle("Include similar artists", isOn: self.$mix.includesSimilarArtists)
-            Toggle("Include discoveries", isOn: self.$mix.includesDiscoveries)
+            VStack(alignment: .leading, spacing: 4) {
+                LabeledContent("Discoveries") {
+                    Text(self.mix.discoveryPercent, format: .percent)
+                        .monospacedDigit()
+                }
+                Slider(value: self.discoveryShare, in: 0 ... 1, step: 0.1) {
+                    Text("Discoveries")
+                } minimumValueLabel: {
+                    Text(0, format: .percent)
+                } maximumValueLabel: {
+                    Text(100, format: .percent)
+                }
+                .tint(Color.brand)
+                .accessibilityValue(Text(self.mix.discoveryPercent, format: .percent))
+            }
             Toggle("Skip recently played", isOn: self.$mix.skipsRecentlyPlayed)
         } header: {
             Text("Options")
         } footer: {
-            Text("Discoveries make about 30% of the mix lesser-known songs by these artists. The mix is a private playlist in your YouTube Music account; regenerate it any time for a new pick.")
+            Text("Discoveries are lesser-known songs by these artists; the slider sets how much of the mix they make up. The mix is a private playlist in your YouTube Music account; regenerate it any time for a new pick.")
         }
+    }
+
+    /// The slider works in 0–1; the mix stores whole percents.
+    private var discoveryShare: Binding<Double> {
+        Binding(
+            get: { Double(self.mix.discoveryPercent) / 100 },
+            set: { self.mix.discoveryPercent = Int(($0 * 100).rounded()) }
+        )
     }
 
     @ViewBuilder

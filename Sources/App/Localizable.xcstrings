@@ -555,12 +555,22 @@
         }
       }
     },
-    "Discoveries make about 30% of the mix lesser-known songs by these artists. The mix is a private playlist in your YouTube Music account; regenerate it any time for a new pick." : {
+    "Discoveries" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avec les découvertes, environ 30 % du mix sont des titres moins connus de ces artistes. Le mix est une playlist privée dans ton compte YouTube Music ; régénère-le quand tu veux pour une nouvelle sélection."
+            "value" : "Découvertes"
+          }
+        }
+      }
+    },
+    "Discoveries are lesser-known songs by these artists; the slider sets how much of the mix they make up. The mix is a private playlist in your YouTube Music account; regenerate it any time for a new pick." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les découvertes sont des titres moins connus de ces artistes ; le curseur règle leur part dans le mix. Le mix est une playlist privée dans ton compte YouTube Music ; régénère-le quand tu veux pour une nouvelle sélection."
           }
         }
       }
@@ -702,17 +712,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "id=%1$@ next=%2$@ prev=%3$@"
-          }
-        }
-      }
-    },
-    "Include discoveries" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inclure des découvertes"
           }
         }
       }

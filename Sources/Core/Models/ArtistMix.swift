@@ -49,15 +49,15 @@ struct ArtistMix: Codable, Identifiable, Hashable {
     var length: Length = .long
     var includesSimilarArtists = false
     var skipsRecentlyPlayed = true
-    /// About 30 % lesser-known songs (beyond each artist's most popular ones).
-    var includesDiscoveries = false
+    /// Percentage (0–100) of lesser-known songs (beyond each artist's most popular ones).
+    var discoveryPercent = 0
     /// The playlist's cover, from the library listing.
     var thumbnailURL: URL?
 
     init(
         playlistId: String? = nil, name: String, artists: [MixArtist], length: Length = .long,
         includesSimilarArtists: Bool = false, skipsRecentlyPlayed: Bool = true,
-        includesDiscoveries: Bool = false, thumbnailURL: URL? = nil
+        discoveryPercent: Int = 0, thumbnailURL: URL? = nil
     ) {
         self.playlistId = playlistId
         self.name = name
@@ -65,8 +65,13 @@ struct ArtistMix: Codable, Identifiable, Hashable {
         self.length = length
         self.includesSimilarArtists = includesSimilarArtists
         self.skipsRecentlyPlayed = skipsRecentlyPlayed
-        self.includesDiscoveries = includesDiscoveries
+        self.discoveryPercent = discoveryPercent
         self.thumbnailURL = thumbnailURL
+    }
+
+    /// The discoveries option was a 30 % on/off toggle before it became a percentage.
+    private enum LegacyKeys: String, CodingKey {
+        case includesDiscoveries
     }
 
     /// Options added later default when reading an older saved copy.
@@ -78,9 +83,18 @@ struct ArtistMix: Codable, Identifiable, Hashable {
         self.length = try container.decodeIfPresent(Length.self, forKey: .length) ?? .long
         self.includesSimilarArtists = try container.decodeIfPresent(Bool.self, forKey: .includesSimilarArtists) ?? false
         self.skipsRecentlyPlayed = try container.decodeIfPresent(Bool.self, forKey: .skipsRecentlyPlayed) ?? true
-        self.includesDiscoveries = try container.decodeIfPresent(Bool.self, forKey: .includesDiscoveries) ?? false
+        if let percent = try container.decodeIfPresent(Int.self, forKey: .discoveryPercent) {
+            self.discoveryPercent = percent
+        } else {
+            let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+            let included = try legacy.decodeIfPresent(Bool.self, forKey: .includesDiscoveries) ?? false
+            self.discoveryPercent = included ? Self.legacyDiscoveryPercent : 0
+        }
         self.thumbnailURL = try container.decodeIfPresent(URL.self, forKey: .thumbnailURL)
     }
+
+    /// What the former "Include discoveries" toggle stood for.
+    static let legacyDiscoveryPercent = 30
 
     var id: String { self.playlistId ?? "new" }
 
@@ -110,7 +124,7 @@ struct ArtistMix: Codable, Identifiable, Hashable {
         self.artists.map(\.id) == other.artists.map(\.id) && self.length == other.length
             && self.includesSimilarArtists == other.includesSimilarArtists
             && self.skipsRecentlyPlayed == other.skipsRecentlyPlayed
-            && self.includesDiscoveries == other.includesDiscoveries
+            && self.discoveryPercent == other.discoveryPercent
     }
 }
 
@@ -128,14 +142,17 @@ enum ArtistMixMarker {
         var n: Int
         var s: Bool
         var r: Bool
-        /// Discoveries; absent in descriptions written before the option existed.
+        /// Discoveries on/off, as read by versions before the percentage; absent in older descriptions.
         var d: Bool?
+        /// Discovery percentage; absent in descriptions written before it existed.
+        var p: Int?
     }
 
     static func description(for mix: ArtistMix) -> String {
         let payload = Payload(
             a: mix.artists.map { [$0.id, $0.name] }, n: mix.length.trackCount,
-            s: mix.includesSimilarArtists, r: mix.skipsRecentlyPlayed, d: mix.includesDiscoveries
+            s: mix.includesSimilarArtists, r: mix.skipsRecentlyPlayed,
+            d: mix.discoveryPercent > 0, p: mix.discoveryPercent
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
@@ -159,7 +176,8 @@ enum ArtistMixMarker {
         return ArtistMix(
             playlistId: playlistId, name: title, artists: artists, length: .init(trackCount: payload.n),
             includesSimilarArtists: payload.s, skipsRecentlyPlayed: payload.r,
-            includesDiscoveries: payload.d ?? false, thumbnailURL: thumbnailURL
+            discoveryPercent: payload.p ?? (payload.d == true ? ArtistMix.legacyDiscoveryPercent : 0),
+            thumbnailURL: thumbnailURL
         )
     }
 }

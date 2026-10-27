@@ -141,6 +141,7 @@ struct PlaylistDetailView: View {
                 guard let model else { return }
                 Task {
                     if await model.delete() {
+                        self.environment.mixes.forget(playlistId: self.id)
                         self.environment.libraryRevision += 1
                         self.dismiss()
                     } else {

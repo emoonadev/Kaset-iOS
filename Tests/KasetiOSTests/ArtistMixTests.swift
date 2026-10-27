@@ -149,7 +149,7 @@ struct ArtistMixTests {
         let artists = [Self.songs("A", 70), Self.songs("B", 70)]
         let deep = Set(artists.flatMap { $0.dropFirst(ArtistMixBuilder.poolSize) }.map(\.videoId))
         let picked = ArtistMixBuilder.pickSongs(
-            main: artists, similar: [], excluding: [], count: 50, discoveries: true, using: &generator
+            main: artists, similar: [], excluding: [], count: 50, discoveryShare: 0.3, using: &generator
         )
         #expect(picked.count == 50)
         #expect(Set(picked.map(\.videoId)).count == 50)
@@ -167,21 +167,37 @@ struct ArtistMixTests {
         var generator = SeededGenerator(state: 7)
         let picked = ArtistMixBuilder.pickSongs(
             main: [Self.songs("A", 30), Self.songs("B", 30)], similar: [], excluding: [], count: 25,
-            discoveries: true, using: &generator
+            discoveryShare: 1, using: &generator
         )
         #expect(picked.count == 25)
     }
 
-    @Test func discoveriesSurviveTheDescriptionAndOldDescriptionsStillRead() throws {
-        let mix = ArtistMix(name: "D", artists: [MixArtist(id: "UC1", name: "One", thumbnailURL: nil)], includesDiscoveries: true)
+    @Test func discoveryPercentSurvivesTheDescriptionAndOldDescriptionsStillRead() throws {
+        let mix = ArtistMix(name: "D", artists: [MixArtist(id: "UC1", name: "One", thumbnailURL: nil)], discoveryPercent: 70)
         let read = try #require(ArtistMixMarker.mix(from: ArtistMixMarker.description(for: mix), playlistId: "PL1", title: "D", thumbnailURL: nil))
-        #expect(read.includesDiscoveries)
+        #expect(read.discoveryPercent == 70)
         let old = "#kaset-mix {\"a\":[[\"UC1\",\"One\"]],\"n\":50,\"r\":true,\"s\":false,\"v\":1}"
         let legacy = try #require(ArtistMixMarker.mix(from: old, playlistId: "PL1", title: "D", thumbnailURL: nil))
-        #expect(!legacy.includesDiscoveries)
-        // A copy saved before the option existed still loads.
+        #expect(legacy.discoveryPercent == 0)
+        // The former on/off toggle reads as 30 %.
+        let toggled = "#kaset-mix {\"a\":[[\"UC1\",\"One\"]],\"d\":true,\"n\":50,\"r\":true,\"s\":false,\"v\":1}"
+        #expect(ArtistMixMarker.mix(from: toggled, playlistId: "PL1", title: "D", thumbnailURL: nil)?.discoveryPercent == 30)
+        // Copies saved before the option existed, or with the toggle, still load.
         let cached = #"[{"name":"D","artists":[{"id":"UC1","name":"One"}],"length":"long","includesSimilarArtists":false,"skipsRecentlyPlayed":true}]"#
         let decoded = try JSONDecoder().decode([ArtistMix].self, from: Data(cached.utf8))
-        #expect(decoded.first?.includesDiscoveries == false)
+        #expect(decoded.first?.discoveryPercent == 0)
+        let cachedToggle = #"[{"name":"D","artists":[{"id":"UC1","name":"One"}],"includesDiscoveries":true}]"#
+        #expect(try JSONDecoder().decode([ArtistMix].self, from: Data(cachedToggle.utf8)).first?.discoveryPercent == 30)
+    }
+
+    @Test func fullDiscoveriesTakeOnlyLesserKnownSongs() {
+        var generator = SeededGenerator(state: 8)
+        let artists = [Self.songs("A", 70), Self.songs("B", 70)]
+        let deep = Set(artists.flatMap { $0.dropFirst(ArtistMixBuilder.poolSize) }.map(\.videoId))
+        let picked = ArtistMixBuilder.pickSongs(
+            main: artists, similar: [], excluding: [], count: 50, discoveryShare: 1, using: &generator
+        )
+        #expect(picked.count == 50)
+        #expect(picked.filter { deep.contains($0.videoId) }.count == 50)
     }
 }

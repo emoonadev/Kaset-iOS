@@ -9,9 +9,6 @@ struct ArtistMixBuilder {
     static let poolSize = 40
     /// Similar artists added per picked artist when the option is on.
     static let similarPerArtist = 2
-    /// Part of the queue taken from beyond the popular songs when discoveries are on.
-    static let discoveryShare = 0.3
-
     struct Result {
         let songs: [Song]
         let artistCount: Int
@@ -36,7 +33,7 @@ struct ArtistMixBuilder {
         var generator = SystemRandomNumberGenerator()
         let songs = Self.pickSongs(
             main: details.map(\.songs), similar: similar, excluding: recent,
-            count: mix.length.trackCount, discoveries: mix.includesDiscoveries, using: &generator
+            count: mix.length.trackCount, discoveryShare: Double(mix.discoveryPercent) / 100, using: &generator
         )
         return Result(songs: songs, artistCount: details.filter { !$0.songs.isEmpty }.count + similar.filter { !$0.isEmpty }.count)
     }
@@ -48,11 +45,11 @@ struct ArtistMixBuilder {
     /// artists take part in every other round only. Recently played songs go to the end of
     /// each artist's pool, used only when nothing else is left.
     ///
-    /// With `discoveries`, `discoveryShare` of the songs come from beyond each artist's most
+    /// `discoveryShare` (0–1) of the songs come from beyond each artist's most
     /// popular ones, spread evenly through the queue; the rest stays the popular pick.
     static func pickSongs(
         main: [[Song]], similar: [[Song]], excluding recent: Set<String>, count: Int,
-        discoveries: Bool = false, using generator: inout some RandomNumberGenerator
+        discoveryShare: Double = 0, using generator: inout some RandomNumberGenerator
     ) -> [Song] {
         func unique(_ songs: [Song]) -> [Song] {
             var ids = Set<String>()
@@ -70,7 +67,7 @@ struct ArtistMixBuilder {
         let similarPools = similar.map { shuffledPool(Array(unique($0).prefix(self.poolSize))) }
 
         var pickedIds = Set<String>()
-        let discoveryCount = discoveries ? Int((Double(count) * self.discoveryShare).rounded()) : 0
+        let discoveryCount = Int((Double(count) * min(max(discoveryShare, 0), 1)).rounded())
         // Discoveries first so the share holds; artists without deep cuts leave it to the others,
         // and whatever is missing is made up from the popular songs.
         let discovered = self.roundRobin(
