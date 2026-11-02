@@ -1,0 +1,72 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Like this song in ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Like ce titre sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play ${playlist} in ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue ${playlist} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play a playlist in ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue une playlist sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Play my playlist ${playlist} in ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joue ma playlist ${playlist} sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Search and play in ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cherche et joue sur ${applicationName}"
+          }
+        }
+      }
+    },
+    "Start a radio in ${applicationName}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lance une radio sur ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

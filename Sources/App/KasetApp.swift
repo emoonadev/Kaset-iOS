@@ -4,7 +4,7 @@ import UserNotifications
 @main
 struct KasetApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var environment = AppEnvironment()
+    @State private var environment = AppEnvironment.shared
 
     var body: some Scene {
         let environment = self.environment

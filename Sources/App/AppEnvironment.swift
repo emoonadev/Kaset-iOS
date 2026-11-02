@@ -5,6 +5,10 @@ import Observation
 @MainActor
 @Observable
 final class AppEnvironment {
+    /// The one instance: the app's scene and the intents, which the system can run before any
+    /// window exists, have to share the same player.
+    static let shared = AppEnvironment()
+
     let auth: AuthStore
     let client: YTMusicClient
     let player: WebPlayer
@@ -12,6 +16,7 @@ final class AppEnvironment {
     let newReleases = NewReleaseWatcher()
     let listening = ListeningHistory()
     private let accountSwitcher = AccountSwitcher()
+    @ObservationIgnored private var restoreTask: Task<Void, Never>?
 
     /// Photo of the selected account, for the navigation bar button.
     private(set) var accountAvatarURL: URL?
@@ -22,6 +27,9 @@ final class AppEnvironment {
     /// Bumped after the user's library changes (playlist created, renamed, deleted) so the
     /// Library screen reloads.
     var libraryRevision = 0
+
+    /// Last song liked by an intent, so an open Now Playing shows the heart.
+    var likedFromOutside: String?
 
     var isPlaybackDebugPresented = false
     var isLoginPresented = false
@@ -68,10 +76,20 @@ final class AppEnvironment {
 
     /// Launch work: put the archived session back, and reload the web view if it was missing.
     func start() async {
-        if await self.auth.restore() {
-            self.player.reload()
-        }
+        await self.restoreSession()
         await self.refreshAccount()
+    }
+
+    /// Runs once, whoever asks first: the launch, or an intent that arrives before it. A play
+    /// issued after this is not lost to the reload.
+    func restoreSession() async {
+        let task = self.restoreTask ?? Task {
+            if await self.auth.restore() {
+                self.player.reload()
+            }
+        }
+        self.restoreTask = task
+        await task.value
     }
 
     func refreshAccount() async {

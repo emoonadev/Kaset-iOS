@@ -76,6 +76,11 @@ final class NowPlayingModel {
         )
     }
 
+    /// The song was liked outside this screen (Siri, Shortcuts).
+    func likedElsewhere(videoId: String) {
+        if videoId == self.loadedVideoId { self.likeStatus = .like }
+    }
+
     func toggleLike(videoId: String) async {
         let next: LikeStatus = self.likeStatus == .like ? .indifferent : .like
         let previous = self.likeStatus
@@ -208,6 +213,9 @@ struct NowPlayingView: View {
             let model = self.model ?? NowPlayingModel(client: self.environment.client)
             self.model = model
             await model.trackChanged(to: state.videoId)
+        }
+        .onChange(of: self.environment.likedFromOutside) { _, videoId in
+            if let videoId { self.model?.likedElsewhere(videoId: videoId) }
         }
         .task(id: state.artworkURL) {
             let model = self.model ?? NowPlayingModel(client: self.environment.client)
