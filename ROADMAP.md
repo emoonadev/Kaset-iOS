@@ -47,7 +47,18 @@ Legend: `[x]` shipped · `[ ]` planned.
       when shorter; paused time and ads do not count); no backfill. Optional sync through a
       file in an iCloud Drive folder picked in *Settings → Listening recap* (merged by play,
       no CloudKit)
+- [x] Siri and Shortcuts (App Intents, no entitlement needed): *Play Playlist* (with shuffle),
+      *Search and Play*, *Start Radio*, *Like This Song*, with phrases in English and French.
+      Starting playback opens the app (the web player needs its window); liking does not
+- [x] Recognise the music around me: a Shortcut chains *Recognise Music* (Shazam) and *Search and
+      Play*. In-app ShazamKit would need a paid developer account
+- [x] Wake up to music: a Shortcuts automation on the Clock alarm runs *Play Playlist*. Unlocks
+      first if the phone is locked
+- [x] Visual Intelligence (Apple Intelligence iPhones): results for the text read on a cover or
+      poster; tapping one opens or plays it. An image without text finds nothing
 - [ ] **Verify on device** (code shipped, not yet measured):
+  - Siri phrases, the Shortcuts actions, the *Recognise Music* and alarm automations, and
+    Visual Intelligence results: none could run in the simulator
   - Longer buffer (*Settings → Bad network*, relaunch): do the `[buffer] … ahead=` log lines
     go well past ~25-35 s? If not, YouTube's `enable_server_driven_readahead` probably caps it
   - `yt-navigate` fallback: a play from the app logs `yt-navigate watch …` with no page load
@@ -72,23 +83,15 @@ Legend: `[x]` shipped · `[ ]` planned.
 - [ ] **Find a song by its lyrics**: type a line you remember, LRCLib full-text search finds the
       song, YouTube Music search opens it
 - [ ] **Music for a set duration**: "45 min" builds a queue that fits the trip or the workout
-- [ ] **Recognise the music around me**: a Shortcut *Recognise Music* (Shazam, built into
-      Shortcuts) → app intent "Search and play" opens the match in the app (play, like, add to
-      playlist). In-app ShazamKit would need a paid developer account
 - [ ] ~~Offline / download of liked songs~~ not feasible: playback goes through the web player
 
 ## iOS integration
 
 - [ ] **Widgets**: now-playing widget with play/pause (App Group + App Intents)
-- [ ] **App Intents / Siri / Shortcuts**: "Play my playlist X", "Start a radio", "Like this
-      song"; usable by Siri with Apple Intelligence and by the Shortcuts *Use Model* action
-- [ ] **Visual Intelligence** (iOS 26): results from the app when analysing an image (album
-      cover, concert poster → artist / album)
 - [ ] **CarPlay**: blocked by Apple's `carplay-audio` entitlement (not available to sideloaded
       builds); the system *Now Playing* screen already works
-- [ ] **Wake up to music**: an App Intent "Play playlist X" that a Shortcuts personal
-      automation runs when the Clock alarm is stopped; optionally an in-app AlarmKit alarm
-      (iOS 26) whose button opens the app and starts the playlist
+- [ ] **In-app alarm** (AlarmKit, iOS 26): an alarm whose button opens the app and starts a
+      playlist, as an alternative to the Shortcuts automation
 - [ ] **Spotlight**: index my playlists, albums and liked songs (Core Spotlight) so they can be
       found and played from the iPhone search
 - [ ] **iPad layout**: sidebar and two-column detail screens

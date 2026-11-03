@@ -180,6 +180,17 @@
         }
       }
     },
+    "A title, ideally with the artist." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un titre, idéalement avec l’artiste."
+          }
+        }
+      }
+    },
     "About" : {
       "localizations" : {
         "fr" : {
@@ -724,6 +735,17 @@
         }
       }
     },
+    "Finds a song in YouTube Music and plays it in Kaset." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouve un titre dans YouTube Music et le lance dans Kaset."
+          }
+        }
+      }
+    },
     "Follow" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -831,6 +853,17 @@
         }
       }
     },
+    "Item" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Élément"
+          }
+        }
+      }
+    },
     "Kind" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -838,6 +871,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Type"
+          }
+        }
+      }
+    },
+    "Leave empty to use the song playing." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laisse vide pour utiliser le titre en cours."
           }
         }
       }
@@ -886,6 +930,28 @@
         }
       }
     },
+    "Like This Song" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liker ce titre"
+          }
+        }
+      }
+    },
+    "Liked %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ liké"
+          }
+        }
+      }
+    },
     "Liked music" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -893,6 +959,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Titres likés"
+          }
+        }
+      }
+    },
+    "Likes the song playing in Kaset." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Like le titre en cours dans Kaset."
           }
         }
       }
@@ -1038,6 +1115,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Surtout vers %@"
+          }
+        }
+      }
+    },
+    "Music" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musique"
           }
         }
       }
@@ -1224,6 +1312,17 @@
         }
       }
     },
+    "No song found for %@." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun titre trouvé pour %@."
+          }
+        }
+      }
+    },
     "No songs were played in this period." : {
       "localizations" : {
         "fr" : {
@@ -1263,6 +1362,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rien ici pour l'instant."
+          }
+        }
+      }
+    },
+    "Nothing is playing in Kaset." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune lecture en cours dans Kaset."
           }
         }
       }
@@ -1318,6 +1428,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En cours de lecture"
+          }
+        }
+      }
+    },
+    "Open in Kaset" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir dans Kaset"
           }
         }
       }
@@ -1387,6 +1508,17 @@
         }
       }
     },
+    "Play ${playlist}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer ${playlist}"
+          }
+        }
+      }
+    },
     "Play Next" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1394,6 +1526,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lire ensuite"
+          }
+        }
+      }
+    },
+    "Play Playlist" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer une playlist"
           }
         }
       }
@@ -1429,6 +1572,28 @@
         }
       }
     },
+    "Playing %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture de %@"
+          }
+        }
+      }
+    },
+    "Playlist" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist"
+          }
+        }
+      }
+    },
     "Playlists" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1436,6 +1601,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Playlists"
+          }
+        }
+      }
+    },
+    "Plays a playlist from your library in Kaset." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lance une playlist de ta bibliothèque dans Kaset."
           }
         }
       }
@@ -1542,6 +1718,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Radio"
+          }
+        }
+      }
+    },
+    "Radio of %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio de %@"
           }
         }
       }
@@ -1680,6 +1867,28 @@
         }
       }
     },
+    "Search and Play" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher et écouter"
+          }
+        }
+      }
+    },
+    "Search and play ${query}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher et écouter ${query}"
+          }
+        }
+      }
+    },
     "Search artists" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1788,6 +1997,17 @@
         }
       }
     },
+    "Sign in to YouTube Music in Kaset first." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecte-toi d’abord à YouTube Music dans Kaset."
+          }
+        }
+      }
+    },
     "Sign in with your Google account to play your music." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1875,6 +2095,17 @@
         }
       }
     },
+    "Song" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titre"
+          }
+        }
+      }
+    },
     "Songs" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1928,6 +2159,17 @@
         }
       }
     },
+    "Start a radio from ${query}" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer une radio à partir de ${query}"
+          }
+        }
+      }
+    },
     "Start Radio" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1935,6 +2177,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lancer la radio"
+          }
+        }
+      }
+    },
+    "Starts a radio from a song, or from the song playing in Kaset." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lance une radio à partir d’un titre, ou du titre en cours dans Kaset."
           }
         }
       }
@@ -2016,6 +2269,17 @@
     },
     "The playlist starts with %@." : {
 
+    },
+    "There is nothing to search for." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n’y a rien à rechercher."
+          }
+        }
+      }
     },
     "This can't be undone." : {
       "localizations" : {
@@ -2129,6 +2393,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Semaine"
+          }
+        }
+      }
+    },
+    "Which playlist?" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle playlist ?"
+          }
+        }
+      }
+    },
+    "Which song?" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quel titre ?"
           }
         }
       }

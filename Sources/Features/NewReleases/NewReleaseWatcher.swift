@@ -297,6 +297,12 @@ final class NotificationRouter {
     /// Bumped by a tap with several releases: Home comes to the front, where the shelf lists them.
     var homeRequest = 0
 
+    /// An item to show from outside the app: Home plays a song and pushes anything else.
+    func open(_ entity: MediaEntity) {
+        self.pendingEntity = entity
+        self.homeRequest += 1
+    }
+
     func open(albumId: String?, title: String?, videoId: String?) {
         if let videoId, !videoId.isEmpty {
             self.pendingEntity = MediaEntity(

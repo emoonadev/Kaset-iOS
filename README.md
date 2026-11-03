@@ -54,6 +54,9 @@ carried over and the player was rebuilt for iOS.
 - **Recovery:** web content termination, stuck streams and network changes bring playback back
   to the same track and position; the last session is restored after a cold start.
 - **Account:** Google sign-in, brand-account switching, avatar in the navigation bar.
+- **Siri and Shortcuts:** play a playlist, search and play, start a radio, like the current song;
+  chain them with Shazam's *Recognise Music* or a Clock alarm. Visual Intelligence results on
+  Apple Intelligence iPhones.
 - **Settings:** audio quality, content language, haptics, optional ad skipping (off by default).
 - **Localized** in English and French.
 
