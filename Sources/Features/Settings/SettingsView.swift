@@ -10,6 +10,7 @@ struct SettingsView: View {
     @AppStorage(Haptics.storageKey) private var haptics = true
     @AppStorage("nativeNowPlaying") private var nativeNowPlaying = true
     @AppStorage(AdSkip.storageKey) private var adAutoSkip = false
+    @AppStorage(DataSaver.storageKey) private var dataSaver = true
     @AppStorage("settings.handlePhoneCalls") private var handlePhoneCalls = true
     @AppStorage(BufferPolicy.adaptiveQualityStorageKey) private var adaptiveQuality = true
     @AppStorage(BufferPolicy.extendedStorageKey) private var extendedBuffer = false
@@ -37,6 +38,13 @@ struct SettingsView: View {
                     Text("Skipping ads is an opt-in and may go against YouTube's terms of service.")
                 }
                 .onChange(of: self.adAutoSkip) { _, _ in self.environment.player.applyAdSkipSetting() }
+
+                Section {
+                    Toggle("Save data on music videos", isOn: self.$dataSaver)
+                        .onChange(of: self.dataSaver) { _, _ in self.environment.player.applyDataSaverSetting() }
+                } footer: {
+                    Text("Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data.")
+                }
 
                 Section {
                     Toggle("Lower quality on a weak network", isOn: self.$adaptiveQuality)

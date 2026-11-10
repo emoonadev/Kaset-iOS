@@ -330,6 +330,26 @@
         }
       }
     },
+    "Save data on music videos" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Économiser des données sur les clips"
+          }
+        }
+      }
+    },
+    "Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les clips sont lus dans leur version titre quand YouTube Music en propose une (Premium), qui peut différer un peu du clip ; les autres vidéos sont chargées à la qualité la plus basse. L'app n'affiche jamais la vidéo : seules les données sont économisées."
+          }
+        }
+      }
+    },
     "and %lld more" : {
       "extractionState" : "stale",
       "localizations" : {

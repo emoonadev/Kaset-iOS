@@ -484,6 +484,13 @@ final class WebPlayer: NSObject {
         self.webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
+    /// Pushes the data saver preference to the live page.
+    func applyDataSaverSetting() {
+        let js = "window.__kasetSetDataSaver && window.__kasetSetDataSaver(\(DataSaver.isEnabled ? "true" : "false"));"
+        self.webView.evaluateJavaScript(js, completionHandler: nil)
+        self.log.log("datasaver", DataSaver.isEnabled ? "on" : "off")
+    }
+
     /// Applies the stored audio-quality preference to the live page.
     /// The user's quality, or low while the network is weak (see `lowQualityReason`).
     var effectiveAudioQuality: PlaybackAudioQuality {
@@ -642,6 +649,9 @@ final class WebPlayer: NSObject {
             self.log.log("bg", "page undid a pause caused by backgrounding (\(message["via"] as? String ?? "?"))")
         case "ad":
             self.log.log("ad", "skip via \(message["via"] as? String ?? "?")")
+        case "datasaver":
+            let from = (message["from"] as? Int).map { " from \($0)p" } ?? ""
+            self.log.log("datasaver", "\(message["action"] as? String ?? "?")\(from)")
         case "dialog":
             self.log.log("js", "dialog \(message["tag"] as? String ?? "?") clicked=\(message["clicked"] as? Bool ?? false) "
                 + "button=\(message["button"] as? String ?? "")")
