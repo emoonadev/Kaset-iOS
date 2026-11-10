@@ -193,6 +193,7 @@ final class WebPlayer: NSObject {
     /// Starts a song, optionally inside a playlist/radio so the page owns a real queue.
     func play(videoId: String?, playlistId: String? = nil) {
         guard videoId != nil || playlistId != nil else { return }
+        if videoId != self.state.videoId { self.beginTrackChange() }
         self.playRequest &+= 1
         let request = self.playRequest
         var components = URLComponents(string: "https://music.youtube.com/watch")!
@@ -248,7 +249,10 @@ final class WebPlayer: NSObject {
     }
 
     /// Jumps to / removes an entry of the page's queue by its position.
-    func playQueueEntry(at index: Int) { self.command("playQueueIndex", argument: String(index)) }
+    func playQueueEntry(at index: Int) {
+        self.beginTrackChange()
+        self.command("playQueueIndex", argument: String(index))
+    }
     func removeQueueEntry(at index: Int) {
         Task {
             if let reason = await self.removeQueueEntryAndWait(at: index) {
@@ -330,8 +334,40 @@ final class WebPlayer: NSObject {
         if self.state.isPlaying { self.lastUserPause = Date() }
         self.command("toggle")
     }
-    func next() { self.command("next") }
-    func previous() { self.command("previous") }
+    func next() {
+        if self.state.canGoNext { self.beginTrackChange() }
+        self.command("next")
+    }
+    func previous() {
+        self.beginTrackChange()
+        self.command("previous")
+    }
+
+    /// From a skip until the page reports the new track (`TrackChangeHold`).
+    @ObservationIgnored private var trackChangeHold: TrackChangeHold?
+
+    /// Puts the progress bar at 0 on the tap itself: the page reports the old song until the
+    /// next one loads, up to a second later.
+    private func beginTrackChange() {
+        guard self.state.videoId != nil, self.state.hasMedia, !self.state.isAd else { return }
+        let now = Date()
+        self.trackChangeHold = TrackChangeHold(from: self.state, at: now)
+        self.state.isChangingTrack = true
+        self.publishNowPlaying()
+    }
+
+    /// Keeps a skip's 0 on screen through the old track's last reports.
+    private func applyingTrackChangeHold(to state: PlaybackState, at date: Date) -> PlaybackState {
+        guard let hold = self.trackChangeHold else { return state }
+        var next = state
+        if hold.isReleased(by: state, at: date) {
+            self.trackChangeHold = nil
+            next.isChangingTrack = false
+        } else {
+            next.isChangingTrack = true
+        }
+        return next
+    }
 
     func seek(to seconds: TimeInterval) {
         self.lastSeekCommand = Date()
@@ -504,7 +540,7 @@ final class WebPlayer: NSObject {
             else { return }
             if self.isShowingRestoredSession, !self.carriesTrack(message) { return }
             self.isShowingRestoredSession = false
-            self.state = self.state.applying(message)
+            self.state = self.applyingTrackChangeHold(to: self.state.applying(message), at: Date())
             self.publishNowPlaying()
         }
     }
@@ -556,7 +592,7 @@ final class WebPlayer: NSObject {
             }
             self.lastEvent = event
             self.eventSerial += 1
-            self.state = self.state.applying(message, at: now)
+            self.state = self.applyingTrackChangeHold(to: self.state.applying(message, at: now), at: now)
             self.onStateChange?(self.state, now)
             // Playback started again (lock-screen / widget play, user tap) while no call is
             // active: the page must never stay in its "stand down" mode.
@@ -894,6 +930,7 @@ final class WebPlayer: NSObject {
         self.lastRemoteCommand = Date()
         self.log.log("remote", "lock screen \(command)")
         if command == "play" || command == "toggle", self.recoverFailedMedia() { return .success }
+        if command == "previous" || (command == "next" && self.state.canGoNext) { self.beginTrackChange() }
         self.command(command)
         return .success
     }

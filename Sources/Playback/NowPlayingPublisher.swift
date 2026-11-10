@@ -25,7 +25,7 @@ final class NowPlayingPublisher {
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: state.title ?? "",
             MPMediaItemPropertyArtist: state.artist ?? "",
-            MPNowPlayingInfoPropertyElapsedPlaybackTime: state.position,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: state.isChangingTrack ? 0 : state.position,
             MPNowPlayingInfoPropertyPlaybackRate: state.isPlaying ? 1.0 : 0.0,
             MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0,
         ]

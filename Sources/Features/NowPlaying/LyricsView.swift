@@ -104,7 +104,7 @@ private struct SyncedLyricsView: View {
         }
         .task(id: self.lyrics) {
             while !Task.isCancelled {
-                let timeMs = Int(self.environment.player.state.position() * 1000)
+                let timeMs = Int(self.environment.player.state.displayedPosition() * 1000)
                 let index = self.lyrics.currentLineIndex(at: timeMs)
                 if index != self.currentIndex { self.currentIndex = index }
                 try? await Task.sleep(for: .milliseconds(200))
