@@ -220,6 +220,8 @@ enum PlayerScripts {
           window.__kasetAdAutoSkip = \(AdSkip.isEnabled ? "true" : "false");
           const adNow = () => { try { return !!isAdShowing(); } catch (e) { return false; } };
 
+          \(DataSaver.script)
+
           // Seconds of the current track already loaded past the playhead (BufferScripts).
           const bufferAhead = () => {
             try { return window.__kasetBuffer ? window.__kasetBuffer.ahead() : null; } catch (e) { return null; }
