@@ -466,10 +466,10 @@ struct ScrubberView: View {
         .opacity(self.state.duration > 0 ? 1 : 0.5)
         .accessibilityElement()
         .accessibilityLabel("Playback position")
-        .accessibilityValue("\(Self.format(self.state.position())) of \(Self.format(self.state.duration))")
+        .accessibilityValue("\(Self.format(self.state.displayedPosition())) of \(Self.format(self.state.duration))")
         .accessibilityAdjustableAction { direction in
             let step: TimeInterval = 10
-            let current = self.state.position()
+            let current = self.state.displayedPosition()
             switch direction {
             case .increment: self.onSeek(min(current + step, self.state.duration))
             case .decrement: self.onSeek(max(current - step, 0))
@@ -480,7 +480,7 @@ struct ScrubberView: View {
 
     private func displayedPosition(at date: Date, duration: TimeInterval) -> TimeInterval {
         if let dragFraction { return dragFraction * duration }
-        let live = self.state.position(at: date)
+        let live = self.state.displayedPosition(at: date)
         if let pending = self.pendingSeek {
             // Hold the target until the page catches up with it (within 2 s) or the timeout.
             if date < pending.until, abs(live - pending.target) > 2 { return pending.target }

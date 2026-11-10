@@ -100,3 +100,51 @@ struct AdStateTests {
         #expect(!AdSkip.isEnabled)
     }
 }
+
+struct TrackChangeHoldTests {
+    private let t0 = Date(timeIntervalSince1970: 1_000)
+
+    private func playing(_ videoId: String, at time: TimeInterval) -> PlaybackState {
+        PlaybackState().applying(["paused": false, "ended": false, "currentTime": time, "duration": 240.0, "videoId": videoId], at: self.t0)
+    }
+
+    @Test func skipShowsZeroWhileThePageStillReportsTheOldSong() {
+        var state = self.playing("old", at: 125)
+        let hold = TrackChangeHold(from: state, at: self.t0)
+        state.isChangingTrack = true
+        #expect(state.displayedPosition(at: self.t0.addingTimeInterval(0.8)) == 0)
+        // The raw position (recap, recovery) keeps following the page.
+        #expect(state.position(at: self.t0.addingTimeInterval(0.8)) > 125)
+
+        let lateReport = state.applying(["currentTime": 125.9, "videoId": "old"], at: self.t0.addingTimeInterval(0.9))
+        #expect(!hold.isReleased(by: lateReport, at: self.t0.addingTimeInterval(0.9)))
+        // The media element can report the new id with the old time for a moment.
+        let mixed = state.applying(["currentTime": 126.0, "videoId": "new"], at: self.t0.addingTimeInterval(1))
+        #expect(!hold.isReleased(by: mixed, at: self.t0.addingTimeInterval(1)))
+
+        let newSong = state.applying(["currentTime": 0.0, "videoId": "new"], at: self.t0.addingTimeInterval(1.1))
+        #expect(hold.isReleased(by: newSong, at: self.t0.addingTimeInterval(1.1)))
+    }
+
+    @Test func previousThatRestartsTheSameSongReleasesTheHold() {
+        let state = self.playing("song", at: 60)
+        let hold = TrackChangeHold(from: state, at: self.t0)
+        let restarted = state.applying(["currentTime": 0.2, "videoId": "song"], at: self.t0.addingTimeInterval(0.4))
+        #expect(hold.isReleased(by: restarted, at: self.t0.addingTimeInterval(0.4)))
+    }
+
+    @Test func earlySkipWaitsForTheNewSongNotForALowTime() {
+        let state = self.playing("song", at: 3)
+        let hold = TrackChangeHold(from: state, at: self.t0)
+        let stillOld = state.applying(["currentTime": 3.4, "videoId": "song"], at: self.t0.addingTimeInterval(0.4))
+        #expect(!hold.isReleased(by: stillOld, at: self.t0.addingTimeInterval(0.4)))
+    }
+
+    @Test func aSkipThePageIgnoresStopsHoldingAfterTheTimeout() {
+        let state = self.playing("last", at: 200)
+        let hold = TrackChangeHold(from: state, at: self.t0)
+        let unchanged = state.applying(["currentTime": 204.0, "videoId": "last"], at: self.t0.addingTimeInterval(4))
+        #expect(!hold.isReleased(by: unchanged, at: self.t0.addingTimeInterval(4)))
+        #expect(hold.isReleased(by: unchanged, at: self.t0.addingTimeInterval(TrackChangeHold.timeout)))
+    }
+}
