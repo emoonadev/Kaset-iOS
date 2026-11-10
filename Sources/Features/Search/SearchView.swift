@@ -45,13 +45,17 @@ final class SearchViewModel {
 
     func updateSuggestions() async {
         let text = self.query.trimmingCharacters(in: .whitespaces)
-        guard !text.isEmpty else {
+        // The text of the search on screen needs no suggestions: they would cover its results.
+        guard !text.isEmpty, text != self.submittedQuery else {
             self.suggestions = []
             return
         }
         try? await Task.sleep(for: .milliseconds(250))
         guard !Task.isCancelled else { return }
-        self.suggestions = (try? await self.client.getSearchSuggestions(query: text)) ?? []
+        let fetched = (try? await self.client.getSearchSuggestions(query: text)) ?? []
+        // A search submitted while this request was in flight owns the screen now.
+        guard !Task.isCancelled, text != self.submittedQuery else { return }
+        self.suggestions = fetched
     }
 
     func removeRecent(_ text: String) {
@@ -182,6 +186,13 @@ struct SearchView: View {
 private struct SearchContent: View {
     @Environment(AppEnvironment.self) private var environment
     @Bindable var model: SearchViewModel
+    @FocusState private var isSearchFocused: Bool
+
+    /// Runs a search and puts the keyboard away so the results are visible.
+    private func search(_ text: String?) {
+        self.isSearchFocused = false
+        Task { await self.model.submit(text) }
+    }
 
     var body: some View {
         Group {
@@ -192,13 +203,19 @@ private struct SearchContent: View {
             }
         }
         .searchable(text: self.$model.query, prompt: "Songs, albums, artists")
+        .searchFocused(self.$isSearchFocused)
         .searchSuggestions {
+            // A tap searches right away (as in Apple Music). `searchCompletion` would only
+            // copy the text into the field and show the suggestions for it.
             ForEach(self.model.suggestions) { suggestion in
-                Label(suggestion.query, systemImage: "magnifyingglass")
-                    .searchCompletion(suggestion.query)
+                Button {
+                    self.search(suggestion.query)
+                } label: {
+                    Label(suggestion.query, systemImage: "magnifyingglass")
+                }
             }
         }
-        .onSubmit(of: .search) { Task { await self.model.submit() } }
+        .onSubmit(of: .search) { self.search(nil) }
         .onChange(of: self.model.query) { _, text in
             if text.isEmpty { self.model.clearResults() }
         }
