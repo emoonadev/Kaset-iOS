@@ -4,7 +4,7 @@ import UserNotifications
 @main
 struct KasetApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var environment = AppEnvironment()
+    @State private var environment = AppEnvironment.shared
 
     var body: some Scene {
         let environment = self.environment
@@ -30,21 +30,32 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return true
     }
 
+    /// Completion handlers, not the `async` variants: an `async` delegate method completes off the
+    /// main thread, and UIKit's handler for a tap must run on it.
     nonisolated func userNotificationCenter(
-        _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse
-    ) async {
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping @Sendable () -> Void
+    ) {
         let info = response.notification.request.content.userInfo
         let albumId = info[NotificationRouter.albumIdKey] as? String
         let title = info[NotificationRouter.albumTitleKey] as? String
         let videoId = info[NotificationRouter.videoIdKey] as? String
-        await NotificationRouter.shared.open(albumId: albumId, title: title, videoId: videoId)
+        Task { @MainActor in
+            NotificationRouter.shared.open(albumId: albumId, title: title, videoId: videoId)
+            completionHandler()
+        }
     }
 
     /// In the app the Home shelf already shows the releases; still show the banner.
     nonisolated func userNotificationCenter(
-        _ center: UNUserNotificationCenter, willPresent notification: UNNotification
-    ) async -> UNNotificationPresentationOptions {
-        [.banner, .list]
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping @Sendable (UNNotificationPresentationOptions) -> Void
+    ) {
+        Task { @MainActor in
+            completionHandler([.banner, .list])
+        }
     }
 }
 
