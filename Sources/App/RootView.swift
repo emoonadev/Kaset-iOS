@@ -59,7 +59,7 @@ struct RootView: View {
         }
         .sheet(isPresented: $environment.isLoginPresented) {
             #if os(iOS)
-            LoginView { Task { await environment.loginFinished() } }
+            LoginView(dataStore: environment.loginDataStore) { Task { await environment.loginFinished() } }
             #else
             VStack(spacing: 0) {
                 HStack {
@@ -70,7 +70,7 @@ struct RootView: View {
                 }
                 .padding(12)
                 Divider()
-                LoginView { Task { await environment.loginFinished() } }
+                LoginView(dataStore: environment.loginDataStore) { Task { await environment.loginFinished() } }
             }
             .frame(width: 500, height: 650)
             #endif

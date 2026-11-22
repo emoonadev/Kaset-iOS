@@ -40,17 +40,20 @@ enum LoginPasskeySuppression {
     }
 }
 
-/// Google sign-in. Cookies land in the shared default data store, which `AuthStore` reads.
+/// Google sign-in into `dataStore`: a fresh store per sign-in, so each account's cookies stay
+/// apart (see `AccountRegistry`).
 @MainActor
 struct LoginView {
     static let url = URL(string: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F")!
 
+    let dataStore: WKWebsiteDataStore
     let onReachedMusic: () -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(onReachedMusic: self.onReachedMusic) }
 
     fileprivate func makeWebView(coordinator: Coordinator) -> WKWebView {
         let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = self.dataStore
         #if os(iOS)
         // Google rejects the desktop UA used for playback; the iOS UA plus this suffix signs in.
         configuration.applicationNameForUserAgent = "Version/17.0 Mobile/15E148 Safari/604.1"

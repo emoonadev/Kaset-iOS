@@ -95,7 +95,9 @@ struct SettingsView: View {
             #else
             .formStyle(.grouped)
             #endif
-            .task(id: self.environment.auth.state) { await self.loadAccounts() }
+            .task(id: AccountsLoadKey(state: self.environment.auth.state, revision: self.environment.accountRevision)) {
+                await self.loadAccounts()
+            }
         }
     }
 
@@ -169,7 +171,11 @@ struct SettingsView: View {
         } header: {
             Text("Listening recap")
         } footer: {
-            Text("Plays are recorded on this device once a song has played for 30 seconds. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “\(ListeningHistory.syncFileName)” in it.")
+            if let email = listening.accountEmail {
+                Text("Plays are recorded on this device once a song has played for 30 seconds, separately for each account. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “\(ListeningHistory.syncFileName(for: email))” in it for this account.")
+            } else {
+                Text("Plays are recorded on this device once a song has played for 30 seconds, separately for each account, while you are signed in. To share them between devices, pick the same iCloud Drive folder on each one.")
+            }
         }
         .fileImporter(isPresented: self.$isPickingSyncFolder, allowedContentTypes: [.folder]) { result in
             guard case let .success(folder) = result else { return }
@@ -179,9 +185,50 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var accountSection: some View {
-        Section("Account") {
-            switch self.environment.auth.state {
-            case .signedIn:
+        let registry = self.environment.accounts
+        Section {
+            if self.environment.auth.state == .unknown {
+                ProgressView()
+            }
+            ForEach(registry.accounts) { account in
+                Button {
+                    let isActive = account.id == registry.activeID
+                    if isActive, self.environment.auth.state == .signedOut {
+                        self.dismiss()
+                        self.environment.signInAgain()
+                        return
+                    }
+                    guard !isActive else { return }
+                    Task {
+                        self.isSwitching = true
+                        await self.environment.switchGoogleAccount(to: account.id)
+                        self.isSwitching = false
+                    }
+                } label: {
+                    AccountRow(
+                        account: account,
+                        isActive: account.id == registry.activeID,
+                        isExpired: account.id == registry.activeID && self.environment.auth.state == .signedOut
+                    )
+                }
+                .foregroundStyle(.primary)
+                .disabled(self.isSwitching)
+            }
+            Button(registry.accounts.isEmpty ? "Sign in" : "Add account", systemImage: "plus.circle") {
+                self.dismiss()
+                self.environment.addAccount()
+            }
+            .disabled(self.isSwitching)
+        } header: {
+            Text("Accounts")
+        } footer: {
+            if registry.accounts.count > 1 {
+                Text("Each account keeps its own session, library and history. Playback stops when you switch.")
+            }
+        }
+
+        if self.environment.auth.state == .signedIn, self.accounts.count > 1 {
+            Section("Channel") {
                 ForEach(self.accounts) { account in
                     Button {
                         guard !account.isSelected else { return }
@@ -189,7 +236,6 @@ struct SettingsView: View {
                             self.isSwitching = true
                             await self.environment.switchAccount(to: account)
                             self.isSwitching = false
-                            await self.loadAccounts()
                         }
                     } label: {
                         HStack {
@@ -206,22 +252,26 @@ struct SettingsView: View {
                     .foregroundStyle(.primary)
                     .disabled(self.isSwitching)
                 }
-                if self.accounts.isEmpty {
-                    Label("Signed in", systemImage: "checkmark.seal.fill")
-                }
-                Button("Sign out", role: .destructive) {
+            }
+        }
+
+        if let active = registry.active {
+            Section {
+                Button(role: .destructive) {
                     Task {
+                        self.isSwitching = true
                         await self.environment.signOut()
-                        self.dismiss()
+                        self.isSwitching = false
+                        if self.environment.accounts.accounts.isEmpty { self.dismiss() }
+                    }
+                } label: {
+                    if let name = active.name {
+                        Text("Sign out of \(name)")
+                    } else {
+                        Text("Sign out")
                     }
                 }
-            case .signedOut:
-                Button("Sign in") {
-                    self.dismiss()
-                    self.environment.isLoginPresented = true
-                }
-            case .unknown:
-                ProgressView()
+                .disabled(self.isSwitching)
             }
         }
     }
@@ -232,5 +282,41 @@ struct SettingsView: View {
             return
         }
         self.accounts = (try? await self.environment.client.fetchAccountsList().accounts) ?? []
+    }
+}
+
+private struct AccountsLoadKey: Equatable {
+    let state: AuthState
+    let revision: Int
+}
+
+/// One Google account in the account list.
+private struct AccountRow: View {
+    let account: GoogleAccount
+    let isActive: Bool
+    let isExpired: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: self.account.avatarURL) { phase in
+                if case let .success(image) = phase {
+                    image.resizable().scaledToFill()
+                } else {
+                    Image(systemName: "person.crop.circle.fill").resizable().foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 32, height: 32)
+            .clipShape(Circle())
+            VStack(alignment: .leading) {
+                Text(self.account.name ?? String(localized: "Google account"))
+                if self.isExpired {
+                    Text("Signed out. Tap to sign in again.").font(.caption).foregroundStyle(.red)
+                } else if let detail = self.account.email ?? self.account.handle {
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            if self.isActive { Image(systemName: "checkmark") }
+        }
     }
 }

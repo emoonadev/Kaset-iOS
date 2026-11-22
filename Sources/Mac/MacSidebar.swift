@@ -177,6 +177,24 @@ private struct MacSidebarFooter: View {
 
     private var profileMenu: some View {
         Menu {
+            let registry = self.environment.accounts
+            ForEach(registry.accounts) { account in
+                Button {
+                    guard account.id != registry.activeID else { return }
+                    Task {
+                        await self.environment.switchGoogleAccount(to: account.id)
+                        self.shell.resetForSignOut()
+                    }
+                } label: {
+                    if account.id == registry.activeID {
+                        Label(account.name ?? String(localized: "Google account"), systemImage: "checkmark")
+                    } else {
+                        Text(account.name ?? String(localized: "Google account"))
+                    }
+                }
+            }
+            Button("Add Account…") { self.environment.addAccount() }
+            Divider()
             Button("Settings…") { self.openSettings() }
             Divider()
             Button("Sign Out") {
