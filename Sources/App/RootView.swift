@@ -17,15 +17,21 @@ struct RootView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .signedOut, .signedIn:
                 // Signed-out users browse as guests; sign-in lives on the navigation bar button.
+                #if os(iOS)
                 MainTabView()
+                #else
+                MacMainWindow()
+                #endif
             }
         }
         .background(alignment: .topLeading) {
             WebViewHost(webView: environment.player.webView)
                 .id(environment.player.generation)
-                // A phone-sized (but invisible) page: at 1×1 the web app lays out as a tiny
-                // viewport and its queue/player-bar DOM is not reliably populated.
-                .frame(width: 390, height: 844)
+                // An invisible page with a real viewport: at 1×1 the web app lays out as a tiny
+                // viewport and its queue/player-bar DOM is not reliably populated. iOS's desktop
+                // content mode widens a phone-sized view to a desktop viewport; macOS uses the
+                // frame as is, and below ~1000 pt YouTube Music drops its player bar.
+                .frame(width: Platform.isMac ? 1280 : 390, height: Platform.isMac ? 800 : 844)
                 .opacity(0)
                 .allowsHitTesting(false)
         }
@@ -52,7 +58,22 @@ struct RootView: View {
             }
         }
         .sheet(isPresented: $environment.isLoginPresented) {
+            #if os(iOS)
             LoginView { Task { await environment.loginFinished() } }
+            #else
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Sign in to YouTube Music").font(.headline)
+                    Spacer()
+                    Button("Cancel") { environment.isLoginPresented = false }
+                        .keyboardShortcut(.cancelAction)
+                }
+                .padding(12)
+                Divider()
+                LoginView { Task { await environment.loginFinished() } }
+            }
+            .frame(width: 500, height: 650)
+            #endif
         }
     }
 }

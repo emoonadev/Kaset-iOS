@@ -1,9 +1,11 @@
 import AVFoundation
+#if os(iOS)
 import CallKit
+import UIKit
+#endif
 import MediaPlayer
 import Network
 import Observation
-import UIKit
 import WebKit
 
 @MainActor
@@ -24,7 +26,7 @@ private final class MessageProxy: NSObject, WKScriptMessageHandler {
 @Observable
 final class WebPlayer: NSObject {
     static let homeURL = URL(string: "https://music.youtube.com")!
-    static let desktopUserAgent =
+    nonisolated static let desktopUserAgent =
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
 
     private(set) var webView: WKWebView
@@ -61,8 +63,10 @@ final class WebPlayer: NSObject {
     @ObservationIgnored private var lastSavedAt = Date.distantPast
     @ObservationIgnored private var lastEvent = ""
     @ObservationIgnored private let pathMonitor = NWPathMonitor()
+    #if os(iOS)
     @ObservationIgnored private let callObserver = CXCallObserver()
     @ObservationIgnored private var callDelegate: CallDelegate?
+    #endif
     /// A phone call is in progress and playback was paused for it.
     @ObservationIgnored private var isInCall = false
     @ObservationIgnored private var pausedForCall = false
@@ -102,14 +106,18 @@ final class WebPlayer: NSObject {
         super.init()
         self.proxy.target = self
         self.attach(self.webView)
+        #if os(iOS)
         self.configureAudioSession()
         self.observeAudioSession()
         self.observeLifecycle()
+        #endif
         self.configureRemoteCommands()
         self.webView.load(URLRequest(url: Self.homeURL))
         self.restoreSavedSession()
         self.startPathMonitor()
+        #if os(iOS)
         if Self.handlesPhoneCalls { self.observeCalls() }
+        #endif
     }
 
     // MARK: - Web view
@@ -119,10 +127,12 @@ final class WebPlayer: NSObject {
         configuration.websiteDataStore = .default()
         // Without inline playback iOS promotes the video to full screen; without these two
         // it also starts Picture in Picture (spike findings).
+        #if os(iOS)
         configuration.allowsInlineMediaPlayback = true
+        configuration.allowsPictureInPictureMediaPlayback = false
+        #endif
         configuration.mediaTypesRequiringUserActionForPlayback = []
         configuration.allowsAirPlayForMediaPlayback = true
-        configuration.allowsPictureInPictureMediaPlayback = false
         configuration.applicationNameForUserAgent = "Version/17.0 Mobile/15E148 Safari/604.1"
 
         let preferences = WKWebpagePreferences()
@@ -302,14 +312,49 @@ final class WebPlayer: NSObject {
     func toggleShuffle() { self.command("shuffle") }
     func cycleRepeat() { self.command("repeat") }
 
-    /// Starts a playlist and turns the page's shuffle on once the player has loaded.
+    /// Starts a playlist shuffled: YouTube Music's own shuffle endpoint, so playback starts on a
+    /// random track of an already shuffled queue. Falls back to playing the list and turning the
+    /// page's shuffle on, then skipping the first track, when the in-page router is missing.
     func playShuffled(videoId: String?, playlistId: String) {
+        guard videoId == nil, self.hasLoadedPage else {
+            self.playThenShuffle(videoId: videoId, playlistId: playlistId)
+            return
+        }
+        self.playRequest &+= 1
+        let request = self.playRequest
+        let previousVideo = self.state.videoId
+        self.webView.evaluateJavaScript(PlayerScripts.shuffledPlaylistScript(playlistId: playlistId)) { [weak self] result, _ in
+            Task { @MainActor in
+                guard let self else { return }
+                guard let via = result as? String else {
+                    self.playThenShuffle(videoId: nil, playlistId: playlistId)
+                    return
+                }
+                self.log.log("cmd", "\(via) shuffled list=\(playlistId)")
+                try? await Task.sleep(for: .seconds(3))
+                guard request == self.playRequest else { return }
+                if self.state.videoId == nil || self.state.videoId == previousVideo || self.state.listId != playlistId {
+                    self.log.log("cmd", "shuffled start did not take, falling back")
+                    self.playThenShuffle(videoId: nil, playlistId: playlistId)
+                }
+            }
+        }
+    }
+
+    private func playThenShuffle(videoId: String?, playlistId: String) {
         self.play(videoId: videoId, playlistId: playlistId)
+        let request = self.playRequest
         Task {
             for _ in 0 ..< 20 {
                 try? await Task.sleep(for: .seconds(1))
+                guard request == self.playRequest else { return }
                 guard self.state.hasMedia, self.state.isPlaying || self.state.duration > 0 else { continue }
                 if !self.state.isShuffleEnabled { self.toggleShuffle() }
+                // The list started on its first track; shuffle only reorders what follows.
+                if videoId == nil {
+                    try? await Task.sleep(for: .milliseconds(600))
+                    if request == self.playRequest { self.next() }
+                }
                 return
             }
         }
@@ -332,6 +377,24 @@ final class WebPlayer: NSObject {
     }
     func next() { self.command("next") }
     func previous() { self.command("previous") }
+
+    static let volumeKey = "player.volume"
+
+    /// Page volume (0…1). On iOS the system volume is used instead and this stays at 1.
+    private(set) var volume: Double = UserDefaults.standard.object(forKey: WebPlayer.volumeKey) as? Double ?? 1
+
+    func setVolume(_ value: Double) {
+        let clamped = min(max(value, 0), 1)
+        self.volume = clamped
+        UserDefaults.standard.set(clamped, forKey: Self.volumeKey)
+        self.command("setVolume", argument: String(clamped))
+    }
+
+    /// Reapplies the saved volume (new page, new media element).
+    func applyVolume() {
+        guard self.volume < 1 else { return }
+        self.command("setVolume", argument: String(self.volume))
+    }
 
     func seek(to seconds: TimeInterval) {
         self.lastSeekCommand = Date()
@@ -587,6 +650,7 @@ final class WebPlayer: NSObject {
                 self.log.log("media", "\(message["ev"] as? String ?? "?") playing=\(self.state.isPlaying) "
                     + "\(Int(self.state.position))/\(Int(self.state.duration))s buf=\(buffered) vis=\(self.state.visibility ?? "?")")
             }
+            if message["ev"] as? String == "playing" { self.inspectAudio(reason: "playing") }
             self.publishNowPlaying()
         case "queueResult":
             if let attempt = message["attemptGeneration"] as? Int,
@@ -852,6 +916,17 @@ final class WebPlayer: NSObject {
     }
 
     /// Writes what the page buffers and which read-ahead flags it uses into the log.
+    /// Logs the page's audio state (mute / volume of the media element and the YouTube player).
+    func inspectAudio(reason: String) {
+        let js = "window.__kaset && window.__kaset.audio ? window.__kaset.audio() : 'no-page'"
+        self.webView.evaluateJavaScript(js) { [weak self] result, error in
+            Task { @MainActor in
+                let text = (result as? String) ?? error?.localizedDescription ?? "nil"
+                self?.log.log("audio", "\(reason): \(text) app.vol=\(String(format: "%.2f", self?.volume ?? -1))")
+            }
+        }
+    }
+
     func inspectBuffer() {
         let js = "window.__kasetBuffer ? window.__kasetBuffer.inspect() : 'buffer script not loaded'"
         self.webView.evaluateJavaScript(js) { [weak self] result, error in
@@ -898,6 +973,7 @@ final class WebPlayer: NSObject {
         return .success
     }
 
+    #if os(iOS)
     // MARK: - Audio session
 
     /// Category and activation run off the main thread: `setActive` can block for a while and
@@ -1051,6 +1127,13 @@ final class WebPlayer: NSObject {
         }
     }
 
+    #else
+    /// macOS has no app backgrounding pause, audio session or phone calls to react to.
+    private func resumeIfPausedByBackgrounding() {}
+
+    static var handlesPhoneCalls: Bool { false }
+    #endif
+
     /// Lets the page's keep-alive and media run again.
     private func releasePageInterruption() {
         guard self.pageIsInterrupted else { return }
@@ -1058,6 +1141,7 @@ final class WebPlayer: NSObject {
         self.webView.evaluateJavaScript("window.__kaset ? window.__kaset.setInterrupted(false) : 'no-page'", completionHandler: nil)
     }
 
+    #if os(iOS)
     // MARK: - Lifecycle
 
     private func observeLifecycle() {
@@ -1093,6 +1177,7 @@ final class WebPlayer: NSObject {
             }
         }
     }
+    #endif
 }
 
 extension WebPlayer: WKNavigationDelegate, WKUIDelegate {
@@ -1130,6 +1215,7 @@ extension WebPlayer: WKNavigationDelegate, WKUIDelegate {
     }
 }
 
+#if os(iOS)
 /// `CXCallObserverDelegate` is an Objective-C protocol, so it needs an NSObject.
 private final class CallDelegate: NSObject, CXCallObserverDelegate {
     private let onChange: @Sendable () -> Void
@@ -1138,3 +1224,4 @@ private final class CallDelegate: NSObject, CXCallObserverDelegate {
 
     func callObserver(_: CXCallObserver, callChanged _: CXCall) { self.onChange() }
 }
+#endif

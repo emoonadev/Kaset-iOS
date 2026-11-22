@@ -1,5 +1,4 @@
 import MediaPlayer
-import UIKit
 
 /// Publishes the mirrored `PlaybackState` to `MPNowPlayingInfoCenter`.
 ///
@@ -33,6 +32,10 @@ final class NowPlayingPublisher {
         if state.duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = state.duration }
         if let artwork = self.artwork { info[MPMediaItemPropertyArtwork] = artwork }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        #if os(macOS)
+        // macOS reads the explicit state for the menu bar / Control Center Now Playing widget.
+        MPNowPlayingInfoCenter.default().playbackState = state.isPlaying ? .playing : .paused
+        #endif
     }
 
     func clear() {
@@ -40,11 +43,14 @@ final class NowPlayingPublisher {
         self.artworkURL = nil
         self.artwork = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        #if os(macOS)
+        MPNowPlayingInfoCenter.default().playbackState = .stopped
+        #endif
     }
 
     /// Must be `nonisolated`: MediaPlayer calls the image handler on its own queue, and a closure
     /// created in this `@MainActor` class would inherit main-actor isolation and trap there.
-    nonisolated private static func makeArtwork(_ image: UIImage) -> MPMediaItemArtwork {
+    nonisolated private static func makeArtwork(_ image: PlatformImage) -> MPMediaItemArtwork {
         MPMediaItemArtwork(boundsSize: image.size) { _ in image }
     }
 
@@ -54,7 +60,7 @@ final class NowPlayingPublisher {
         self.artworkTask = Task { [weak self] in
             guard let (data, _) = try? await URLSession.shared.data(from: url),
                   !Task.isCancelled,
-                  let image = UIImage(data: data)
+                  let image = PlatformImage(data: data)
             else { return }
             let artwork = Self.makeArtwork(image)
             guard let self, self.artworkURL == url else { return }

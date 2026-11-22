@@ -864,6 +864,9 @@
         }
       }
     },
+    "Kaset works without an account for browsing, search and playback. Sign in to see your library, liked songs and history." : {
+
+    },
     "Kind" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1595,7 +1598,6 @@
       }
     },
     "Playlists" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1996,6 +1998,9 @@
           }
         }
       }
+    },
+    "Sign in to YouTube Music" : {
+
     },
     "Sign in to YouTube Music in Kaset first." : {
       "extractionState" : "stale",

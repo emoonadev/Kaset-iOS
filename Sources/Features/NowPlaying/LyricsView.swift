@@ -24,7 +24,7 @@ struct LyricsSheet: View {
                 }
             }
             .navigationTitle("Lyrics")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationTitle()
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } } }
         }
         .task(id: state.videoId) {
@@ -46,7 +46,7 @@ struct LyricsSheet: View {
 }
 
 /// Plain lyrics: one block of text.
-private struct PlainLyricsView: View {
+struct PlainLyricsView: View {
     let lyrics: Lyrics
 
     var body: some View {
@@ -64,10 +64,11 @@ private struct PlainLyricsView: View {
 
 /// Synced lyrics: the current line is highlighted and kept in view; tapping a line seeks there.
 /// Scrolling by hand pauses the follow for a few seconds, as in Apple Music.
-private struct SyncedLyricsView: View {
+struct SyncedLyricsView: View {
     @Environment(AppEnvironment.self) private var environment
 
     let lyrics: SyncedLyrics
+    var fontSize: CGFloat = 28
 
     @State private var currentIndex: Int?
     @State private var followPausedUntil = Date.distantPast
@@ -121,7 +122,7 @@ private struct SyncedLyricsView: View {
             self.environment.player.seek(to: TimeInterval(line.timeInMs) / 1000)
         } label: {
             Text(line.text.isEmpty ? "♪" : line.text)
-                .font(.system(size: 28, weight: .bold))
+                .font(.system(size: self.fontSize, weight: .bold))
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .foregroundStyle(isCurrent ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))

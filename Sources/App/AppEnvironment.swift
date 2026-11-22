@@ -20,6 +20,8 @@ final class AppEnvironment {
 
     /// Photo of the selected account, for the navigation bar button.
     private(set) var accountAvatarURL: URL?
+    /// Name of the selected account (macOS sidebar footer).
+    private(set) var accountName: String?
 
     /// Full-screen Now Playing. Lives here so any screen can open it (e.g. cover quick-play).
     var isNowPlayingPresented = false
@@ -95,10 +97,13 @@ final class AppEnvironment {
     func refreshAccount() async {
         guard self.auth.state == .signedIn else {
             self.accountAvatarURL = nil
+            self.accountName = nil
             return
         }
         let accounts = try? await self.client.fetchAccountsList().accounts
-        self.accountAvatarURL = (accounts?.first(where: \.isSelected) ?? accounts?.first)?.thumbnailURL
+        let selected = accounts?.first(where: \.isSelected) ?? accounts?.first
+        self.accountAvatarURL = selected?.thumbnailURL
+        self.accountName = selected?.name
     }
 
     func loginFinished() async {
@@ -113,6 +118,7 @@ final class AppEnvironment {
         await self.auth.signOut()
         UserDefaults.standard.removeObject(forKey: AccountSwitcher.brandIdKey)
         self.accountAvatarURL = nil
+        self.accountName = nil
         self.client.resetSessionState()
         self.player.reload(clearingSession: true)
     }

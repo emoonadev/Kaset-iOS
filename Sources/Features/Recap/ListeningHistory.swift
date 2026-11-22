@@ -31,8 +31,7 @@ final class ListeningHistory {
     var plays: [ListenedPlay] { self.log.plays }
 
     init(fileURL: URL? = nil) {
-        let url = fileURL ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("listening-history.json")
+        let url = fileURL ?? Platform.appSupportFile("listening-history.json")
         self.fileURL = url
         self.log = (try? Data(contentsOf: url)).flatMap { try? ListeningLog.decode($0) } ?? ListeningLog()
         self.syncFolderName = self.resolveSyncFolder()?.lastPathComponent

@@ -71,16 +71,16 @@ struct PlaybackDebugView: View {
                 }
 
                 Section("Lancer") {
-                    TextField("videoId", text: self.$videoId).autocorrectionDisabled().textInputAutocapitalization(.never)
+                    TextField("videoId", text: self.$videoId).plainTextInput()
                     TextField("playlistId (optionnel, ex. RDAMVM…)", text: self.$playlistId)
-                        .autocorrectionDisabled().textInputAutocapitalization(.never)
+                        .plainTextInput()
                     Button("Lire") {
                         self.player.play(videoId: self.videoId, playlistId: self.playlistId.isEmpty ? nil : self.playlistId)
                     }
                     .disabled(self.videoId.isEmpty)
 
                     TextField("videoId à jouer ensuite", text: self.$nextVideoId)
-                        .autocorrectionDisabled().textInputAutocapitalization(.never)
+                        .plainTextInput()
                     Button("Lire ensuite") { self.player.playNext(videoId: self.nextVideoId) }
                         .disabled(self.nextVideoId.isEmpty)
                     if let result = self.player.lastQueueResult {

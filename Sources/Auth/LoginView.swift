@@ -41,28 +41,33 @@ enum LoginPasskeySuppression {
 }
 
 /// Google sign-in. Cookies land in the shared default data store, which `AuthStore` reads.
-struct LoginView: UIViewRepresentable {
+@MainActor
+struct LoginView {
     static let url = URL(string: "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F")!
 
     let onReachedMusic: () -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(onReachedMusic: self.onReachedMusic) }
 
-    func makeUIView(context: Context) -> WKWebView {
+    fileprivate func makeWebView(coordinator: Coordinator) -> WKWebView {
         let configuration = WKWebViewConfiguration()
+        #if os(iOS)
         // Google rejects the desktop UA used for playback; the iOS UA plus this suffix signs in.
         configuration.applicationNameForUserAgent = "Version/17.0 Mobile/15E148 Safari/604.1"
+        #endif
         configuration.userContentController.addUserScript(LoginPasskeySuppression.makeUserScript())
         let webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.navigationDelegate = context.coordinator
+        #if os(macOS)
+        // Same as Kaset for macOS: the desktop Safari UA signs in on the Mac.
+        webView.customUserAgent = WebPlayer.desktopUserAgent
+        #endif
+        webView.navigationDelegate = coordinator
         #if DEBUG
             webView.isInspectable = true
         #endif
         webView.load(URLRequest(url: Self.url))
         return webView
     }
-
-    func updateUIView(_: WKWebView, context _: Context) {}
 
     final class Coordinator: NSObject, WKNavigationDelegate {
         let onReachedMusic: () -> Void
@@ -76,3 +81,15 @@ struct LoginView: UIViewRepresentable {
         }
     }
 }
+
+#if os(iOS)
+extension LoginView: UIViewRepresentable {
+    func makeUIView(context: Context) -> WKWebView { self.makeWebView(coordinator: context.coordinator) }
+    func updateUIView(_: WKWebView, context _: Context) {}
+}
+#else
+extension LoginView: NSViewRepresentable {
+    func makeNSView(context: Context) -> WKWebView { self.makeWebView(coordinator: context.coordinator) }
+    func updateNSView(_: WKWebView, context _: Context) {}
+}
+#endif

@@ -151,7 +151,7 @@ struct AddToPlaylistSheet: View {
                 }
             }
             .navigationTitle("Add to Playlist")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } }
             }
@@ -170,7 +170,7 @@ struct AddToPlaylistSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .adaptiveSheetSize()
         .task {
             let model = self.model ?? AddToPlaylistModel(source: self.source, client: self.environment.client)
             self.model = model

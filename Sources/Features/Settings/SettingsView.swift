@@ -29,7 +29,9 @@ struct SettingsView: View {
                         ForEach(PlaybackAudioQuality.allCases) { Text($0.displayName).tag($0.rawValue) }
                     }
                     .onChange(of: self.audioQuality) { _, _ in self.environment.player.applyAudioQuality() }
+                    #if os(iOS)
                     Toggle("Haptic feedback", isOn: self.$haptics)
+                    #endif
                     Toggle("Skip ads automatically", isOn: self.$adAutoSkip)
                 } header: {
                     Text("Playback")
@@ -66,7 +68,9 @@ struct SettingsView: View {
 
                 Section("Diagnostics") {
                     Toggle("Native Now Playing card", isOn: self.$nativeNowPlaying)
+                    #if os(iOS)
                     Toggle("Pause for phone calls (relaunch)", isOn: self.$handlePhoneCalls)
+                    #endif
                     NavigationLink {
                         PlayerHealthView(player: self.environment.player)
                     } label: {
@@ -84,9 +88,13 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            #if os(iOS)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } }
             }
+            #else
+            .formStyle(.grouped)
+            #endif
             .task(id: self.environment.auth.state) { await self.loadAccounts() }
         }
     }

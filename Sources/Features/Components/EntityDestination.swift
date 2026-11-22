@@ -53,7 +53,7 @@ struct MoodCategoryView: View {
             }
         }
         .navigationTitle(self.title)
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
         .task { await self.load() }
     }
 

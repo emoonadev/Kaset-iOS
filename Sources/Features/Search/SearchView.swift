@@ -179,7 +179,7 @@ struct SearchView: View {
     }
 }
 
-private struct SearchContent: View {
+struct SearchContent: View {
     @Environment(AppEnvironment.self) private var environment
     @Bindable var model: SearchViewModel
 
@@ -247,7 +247,7 @@ private struct SearchContent: View {
     private var results: some View {
         VStack(spacing: 0) {
             self.scopePicker
-            if self.model.scope != .all {
+            if self.model.scope != .all, !Platform.isMac {
                 self.scopeTitle
             }
             switch self.model.current.phase {
@@ -275,13 +275,20 @@ private struct SearchContent: View {
             set: { newValue in Task { await self.model.select(newValue) } }
         )) {
             ForEach(self.model.availableScopes) { filter in
-                Image(systemName: filter.symbol)
-                    .accessibilityLabel(filter.title)
-                    .tag(filter)
+                if Platform.isMac {
+                    // The Mac window has room for the names.
+                    Text(filter.title).tag(filter)
+                } else {
+                    Image(systemName: filter.symbol)
+                        .accessibilityLabel(filter.title)
+                        .tag(filter)
+                }
             }
         }
         .pickerStyle(.segmented)
-        .padding(.horizontal)
+        .labelsHidden()
+        .frame(maxWidth: Platform.isMac ? 620 : .infinity)
+        .padding(.horizontal, Platform.isMac ? AdaptiveLayout.horizontalPadding : 16)
         .padding(.vertical, 8)
     }
 

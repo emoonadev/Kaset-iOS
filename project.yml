@@ -12,8 +12,13 @@ targets:
   KasetiOS:
     type: application
     platform: iOS
+    scheme:
+      testTargets:
+        - KasetiOSTests
     sources:
-      - Sources
+      - path: Sources
+        excludes:
+          - Mac
     info:
       path: Sources/Info.plist
       properties:
@@ -40,6 +45,44 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: "0.1"
         CURRENT_PROJECT_VERSION: "1"
+  # macOS app: same sources, with the original Kaset (macOS) layout — sidebar, player bar at the
+  # bottom of the content, lyrics / queue panel on the right. Shell code lives in Sources/Mac.
+  KasetMac:
+    type: application
+    platform: macOS
+    scheme: {}
+    deploymentTarget: "26.0"
+    sources:
+      - path: Sources
+        excludes:
+          - Info.plist
+          - Features/Shell/MainTabView.swift
+          - Features/Shell/MiniPlayerView.swift
+          - Features/NowPlaying/NowPlayingView.swift
+          - Features/NowPlaying/QueueView.swift
+          - Mac/KasetMacIcon.icon
+      - path: Sources/Mac/KasetMacIcon.icon
+        type: file
+        buildPhase: resources
+    info:
+      path: Mac/Info.plist
+      properties:
+        CFBundleDisplayName: Kaset
+        CFBundleName: Kaset
+        CFBundleLocalizations: [en, fr]
+        CFBundleDevelopmentRegion: en
+        LSApplicationCategoryType: public.app-category.music
+        NSHumanReadableCopyright: MIT License
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.emoona.kaset.mac
+        PRODUCT_NAME: Kaset
+        # Icon Composer icon from Kaset for macOS (same artwork as the iOS AppIcon.png).
+        ASSETCATALOG_COMPILER_APPICON_NAME: KasetMacIcon
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        ENABLE_HARDENED_RUNTIME: NO
+        CODE_SIGN_IDENTITY: "-"
   KasetiOSTests:
     type: bundle.unit-test
     platform: iOS
