@@ -30,9 +30,15 @@ struct MacMainWindow: View {
 }
 
 private struct MacMainContent: View {
+    /// Player bar height (52) + its bottom padding (8) + a little air.
+    private static let playerBarClearance: CGFloat = 72
+
     @Environment(AppEnvironment.self) private var environment
     @Environment(MacShell.self) private var shell
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    /// Detail column frame in the window, where the player bar is laid out.
+    @State private var detailFrame: CGRect = .zero
+    @State private var containerFrame: CGRect = .zero
 
     var body: some View {
         let state = self.environment.player.state
@@ -42,8 +48,13 @@ private struct MacMainContent: View {
                 MacSidebar()
             } detail: {
                 MacDetailView(item: self.shell.selection ?? .home)
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        MacPlayerBar()
+                    // The player bar floats over the content: scroll views get a bottom margin
+                    // so their last rows can still scroll clear of it.
+                    .contentMargins(.bottom, Self.playerBarClearance, for: .scrollContent)
+                    .onGeometryChange(for: CGRect.self) { proxy in
+                        proxy.frame(in: .global)
+                    } action: { frame in
+                        self.detailFrame = frame
                     }
             }
 
@@ -54,6 +65,27 @@ private struct MacMainContent: View {
                     .padding(.trailing, 16)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
             }
+        }
+        // The player bar sits above the whole split view, not inside the detail column: on macOS
+        // each page pushed on a NavigationStack is hosted in its own AppKit view, drawn over
+        // anything SwiftUI layers inside the column (inset or overlay), which hid the bar.
+        // It is laid out over the detail column's frame so it never covers the sidebar.
+        // Window (global) coordinates: a named coordinate space does not reach through the
+        // split view's AppKit columns. Until the detail column is measured, the bar spans the
+        // whole bottom rather than not showing at all.
+        .onGeometryChange(for: CGRect.self) { proxy in
+            proxy.frame(in: .global)
+        } action: { frame in
+            self.containerFrame = frame
+        }
+        .overlay(alignment: .bottomLeading) {
+            let detail = self.detailFrame.width > 0 && self.containerFrame.width > 0
+                ? self.detailFrame.offsetBy(dx: -self.containerFrame.minX, dy: -self.containerFrame.minY)
+                : CGRect(origin: .zero, size: self.containerFrame.size)
+            MacPlayerBar()
+                .frame(width: detail.width > 0 ? detail.width : nil)
+                .padding(.leading, max(0, detail.minX))
+                .padding(.bottom, max(0, self.containerFrame.height - detail.maxY))
         }
         .animation(.easeInOut(duration: 0.25), value: self.shell.sidePanel)
         .queueNoticeBanner()
