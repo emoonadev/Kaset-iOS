@@ -11,16 +11,17 @@ enum AuthState: Equatable {
 
 /// Source of truth for "am I signed in", and keeper of the cookie archive.
 ///
-/// There is no OAuth token: the Google cookies in the shared `WKWebsiteDataStore` are the
-/// session. They are mirrored to the Keychain so a relaunch (or an OS-evicted web data
-/// store) does not sign the user out, and the same jar feeds `SAPISIDHASH` signing.
+/// There is no OAuth token: the Google cookies in the active account's `WKWebsiteDataStore`
+/// are the session. They are mirrored to that account's Keychain item so a relaunch (or an
+/// OS-evicted web data store) does not sign the user out, and the same jar feeds `SAPISIDHASH`
+/// signing. Switching accounts points this store at another data store and vault (`activate`).
 @MainActor
 @Observable
 final class AuthStore {
     private(set) var state: AuthState = .unknown
 
-    @ObservationIgnored private let vault: CookieVault
-    @ObservationIgnored private let dataStore: WKWebsiteDataStore
+    @ObservationIgnored private var vault: CookieVault
+    @ObservationIgnored private var dataStore: WKWebsiteDataStore
     @ObservationIgnored private var observer: CookieObserver?
     @ObservationIgnored private var persistTask: Task<Void, Never>?
 
@@ -32,6 +33,20 @@ final class AuthStore {
     private var cookieStore: WKHTTPCookieStore { self.dataStore.httpCookieStore }
 
     // MARK: - Lifecycle
+
+    /// Moves to another account's session (or the guest store) and re-derives the state.
+    @discardableResult
+    func activate(dataStore: WKWebsiteDataStore, vault: CookieVault) async -> Bool {
+        self.persistTask?.cancel()
+        if let observer = self.observer {
+            self.cookieStore.remove(observer)
+            self.observer = nil
+        }
+        self.dataStore = dataStore
+        self.vault = vault
+        self.state = .unknown
+        return await self.restore()
+    }
 
     /// Puts the archived cookies back into the web view jar when it lost them, then decides
     /// the state. Returns `true` if cookies were restored (callers reload live web views).
@@ -69,13 +84,7 @@ final class AuthStore {
         self.persistTask?.cancel()
         self.state = .signedOut
         self.vault.delete()
-        for cookie in await self.cookieStore.allCookies() where AuthCookies.isAllowedDomain(cookie.domain) {
-            await self.cookieStore.deleteCookie(cookie)
-        }
-        let types = WKWebsiteDataStore.allWebsiteDataTypes()
-        let records = await self.dataStore.dataRecords(ofTypes: types)
-            .filter { $0.displayName.contains("google") || $0.displayName.contains("youtube") }
-        await self.dataStore.removeData(ofTypes: types, for: records)
+        await AccountRegistry.clearGoogleData(in: self.dataStore)
     }
 
     /// An authenticated request came back 401/403: the session is gone server-side.

@@ -212,6 +212,9 @@
         }
       }
     },
+    "Accounts" : {
+
+    },
     "Add artists from the suggestions or search for them." : {
       "localizations" : {
         "fr" : {
@@ -690,6 +693,9 @@
           }
         }
       }
+    },
+    "Each account keeps its own session, library and history. Playback stops when you switch." : {
+
     },
     "Edit Mix" : {
       "extractionState" : "stale",
@@ -2025,7 +2031,6 @@
       }
     },
     "Sign out" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2034,6 +2039,9 @@
           }
         }
       }
+    },
+    "Sign out of %@" : {
+
     },
     "Signed in" : {
       "extractionState" : "stale",
@@ -2045,6 +2053,9 @@
           }
         }
       }
+    },
+    "Signed out. Tap to sign in again." : {
+
     },
     "Single" : {
       "extractionState" : "stale",

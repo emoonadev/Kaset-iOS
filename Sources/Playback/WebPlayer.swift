@@ -52,6 +52,8 @@ final class WebPlayer: NSObject {
 
     @ObservationIgnored private let log = SpikeLog.shared
     @ObservationIgnored private let proxy = MessageProxy()
+    /// The active account's data store; read each time the web view is rebuilt.
+    @ObservationIgnored private let dataStore: @MainActor () -> WKWebsiteDataStore
     @ObservationIgnored private let nowPlaying = NowPlayingPublisher()
     @ObservationIgnored private var lastBeat: Date?
     @ObservationIgnored private var lastRemoteCommand = Date.distantPast
@@ -101,8 +103,9 @@ final class WebPlayer: NSObject {
     /// A music.youtube.com document has finished loading in the current web view.
     @ObservationIgnored private var hasLoadedPage = false
 
-    override init() {
-        self.webView = Self.makeWebView(proxy: self.proxy)
+    init(dataStore: @escaping @MainActor () -> WKWebsiteDataStore = { .default() }) {
+        self.dataStore = dataStore
+        self.webView = Self.makeWebView(proxy: self.proxy, dataStore: dataStore())
         super.init()
         self.proxy.target = self
         self.attach(self.webView)
@@ -122,9 +125,9 @@ final class WebPlayer: NSObject {
 
     // MARK: - Web view
 
-    private static func makeWebView(proxy: MessageProxy) -> WKWebView {
+    private static func makeWebView(proxy: MessageProxy, dataStore: WKWebsiteDataStore) -> WKWebView {
         let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .default()
+        configuration.websiteDataStore = dataStore
         // Without inline playback iOS promotes the video to full screen; without these two
         // it also starts Picture in Picture (spike findings).
         #if os(iOS)
@@ -169,7 +172,8 @@ final class WebPlayer: NSObject {
         webView.uiDelegate = self
     }
 
-    /// Rebuilds the web view (e.g. after sign-in so the page picks up the session).
+    /// Rebuilds the web view (e.g. after sign-in so the page picks up the session, or after an
+    /// account switch so it runs on the new account's data store).
     ///
     /// Also drops everything that outlives the old page: the system Now Playing entry (lock
     /// screen / Control Center), its media playback, and optionally the saved session (sign-out).
@@ -180,7 +184,7 @@ final class WebPlayer: NSObject {
         old.configuration.userContentController.removeScriptMessageHandler(forName: PlayerScripts.bridgeName)
         old.load(URLRequest(url: URL(string: "about:blank")!))
 
-        let fresh = Self.makeWebView(proxy: self.proxy)
+        let fresh = Self.makeWebView(proxy: self.proxy, dataStore: self.dataStore())
         self.attach(fresh)
         self.webView = fresh
         self.generation += 1

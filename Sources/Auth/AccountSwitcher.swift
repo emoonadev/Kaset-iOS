@@ -1,29 +1,27 @@
 import Foundation
 import WebKit
 
-/// Re-points the shared web session at another identity (personal or brand account).
+/// Re-points a Google account's web session at another of its identities (personal or brand
+/// channel).
 ///
-/// Each account carries a server-issued sign-in URL; loading it in a web view that shares the
-/// default data store switches the active delegated identity for every web view, including
-/// playback. API calls additionally send `onBehalfOfUser` (see `YTMusicClient.brandIdProvider`).
+/// Each identity carries a server-issued sign-in URL; loading it in a web view that shares the
+/// account's data store switches the active delegated identity for every web view on that store,
+/// including playback. API calls additionally send `onBehalfOfUser` (see
+/// `YTMusicClient.brandIdProvider`). The chosen brand id is kept on the `GoogleAccount`.
 @MainActor
 final class AccountSwitcher: NSObject, WKNavigationDelegate {
-    static let brandIdKey = "settings.brandAccountId"
+    /// Where single-account versions kept the brand id (read once by the migration).
+    static let legacyBrandIdKey = "settings.brandAccountId"
 
     private var continuation: CheckedContinuation<Void, Never>?
     private var webView: WKWebView?
 
-    static var storedBrandId: String? {
-        UserDefaults.standard.string(forKey: self.brandIdKey)
-    }
-
-    /// Loads the account's sign-in URL and waits for the navigation to settle (or time out).
-    func switchSession(to account: UserAccount) async {
-        UserDefaults.standard.set(account.brandId, forKey: Self.brandIdKey)
+    /// Loads the identity's sign-in URL and waits for the navigation to settle (or time out).
+    func switchSession(to account: UserAccount, in dataStore: WKWebsiteDataStore) async {
         guard let url = account.signinURL else { return }
 
         let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .default()
+        configuration.websiteDataStore = dataStore
         configuration.applicationNameForUserAgent = "Version/17.0 Mobile/15E148 Safari/604.1"
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
