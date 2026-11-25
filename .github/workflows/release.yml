@@ -132,7 +132,7 @@ jobs:
           cat > "$RUNNER_TEMP/notes.md" <<'EOF'
           ## Install on macOS
 
-          Spool is ad-hoc signed and **not notarized** (there is no paid Apple Developer account behind it), so Gatekeeper will block the first launch.
+          Spool is ad-hoc signed and **not notarized** yet, so Gatekeeper will block the first launch.
 
           1. Download `Spool-<version>.dmg`, open it and drag **Spool** to **Applications**.
           2. On first launch, right-click Spool in Applications and choose **Open**, then confirm. (Or try to open it once, then go to **System Settings → Privacy & Security** and click **Open Anyway**.)
