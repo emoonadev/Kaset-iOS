@@ -3,7 +3,8 @@
 Run from the repo root:  python3 docs/icon/make.py
 Writes Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon.png (iOS),
 Sources/Mac/KasetMacIcon.icon/Assets/{Reel,Play}.png (macOS Icon Composer layers)
-and docs/icon/AppIcon-rounded.png (README). Needs Pillow.
+AppIcon-Dark.png (iOS dark appearance) and docs/icon/AppIcon-rounded.png (README).
+Needs Pillow.
 """
 import math
 from PIL import Image, ImageDraw, ImageFilter
@@ -35,18 +36,26 @@ def down(im): return im.resize((1024,1024),Image.LANCZOS)
 reel=down(reel_layer()); play=down(play_layer())
 reel.save("Sources/Mac/KasetMacIcon.icon/Assets/Reel.png"); play.save("Sources/Mac/KasetMacIcon.icon/Assets/Play.png")
 
+def gradient(top,bot):
+    im=Image.new("RGBA",(1024,1024))
+    for y in range(1024):
+        t=y/1023; c=tuple(round(top[i]*(1-t)+bot[i]*t) for i in range(3))
+        ImageDraw.Draw(im).line([(0,y),(1023,y)],fill=c+(255,))
+    return im
+
 # iOS: light gradient like the current icon, soft shadow under the glyph
-bg=Image.new("RGBA",(1024,1024))
-top=(249,249,251); bot=(234,234,237)
-for y in range(1024):
-    t=y/1023; c=tuple(round(top[i]*(1-t)+bot[i]*t) for i in range(3))
-    ImageDraw.Draw(bg).line([(0,y),(1023,y)],fill=c+(255,))
+bg=gradient((249,249,251),(234,234,237))
 glyph=Image.alpha_composite(reel,play)
 sh=Image.new("RGBA",(1024,1024),(0,0,0,0))
 sh.paste((20,40,90,70),(0,0,1024,1024),glyph.split()[3])
 sh=sh.filter(ImageFilter.GaussianBlur(28))
 bg.alpha_composite(glyph)
 bg.convert("RGB").save("Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon.png")
+
+# iOS dark appearance: same glyph on the system's dark gray gradient
+dark=gradient((44,44,46),(22,22,24))
+dark.alpha_composite(glyph)
+dark.convert("RGB").save("Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark.png")
 
 # README: the iOS icon with the system's rounded corners
 r=bg.resize((512,512),Image.LANCZOS)
