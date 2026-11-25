@@ -213,7 +213,14 @@
       }
     },
     "Accounts" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comptes"
+          }
+        }
+      }
     },
     "Add artists from the suggestions or search for them." : {
       "localizations" : {
@@ -329,6 +336,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les albums et singles des artistes que tu suis et que tu écoutes le plus apparaissent sur l'Accueil. La vérification a lieu chaque matin quand iOS le permet (l'actualisation en arrière-plan doit être activée), sinon à l'ouverture de l'app."
+          }
+        }
+      }
+    },
+    "Albums and singles from the artists you follow and play the most show up on Home. The check runs once a day, when Spool is open." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les albums et singles des artistes que vous suivez et écoutez le plus apparaissent dans l’accueil. La vérification a lieu une fois par jour, quand Spool est ouvert."
           }
         }
       }
@@ -857,6 +874,16 @@
         }
       }
     },
+    "General" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Général"
+          }
+        }
+      }
+    },
     "Haptic feedback" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1349,6 +1376,16 @@
         }
       }
     },
+    "New Playlist…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouvelle playlist…"
+          }
+        }
+      }
+    },
     "New releases" : {
       "localizations" : {
         "fr" : {
@@ -1377,6 +1414,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Suivant"
+          }
+        }
+      }
+    },
+    "Next period" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Période suivante"
           }
         }
       }
@@ -1651,6 +1698,16 @@
         }
       }
     },
+    "Play %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire %@"
+          }
+        }
+      }
+    },
     "Play Next" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1792,6 +1849,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Précédent"
+          }
+        }
+      }
+    },
+    "Previous period" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Période précédente"
           }
         }
       }
@@ -1942,6 +2009,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retirer du mix"
+          }
+        }
+      }
+    },
+    "Remove from Playlist" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer de la playlist"
           }
         }
       }
@@ -2132,6 +2209,16 @@
         }
       }
     },
+    "Share" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager"
+          }
+        }
+      }
+    },
     "Show all (%lld)" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2245,8 +2332,25 @@
         }
       }
     },
+    "Signed out. Click to sign in again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecté. Cliquez pour vous reconnecter."
+          }
+        }
+      }
+    },
     "Signed out. Tap to sign in again." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecté. Touchez pour vous reconnecter."
+          }
+        }
+      }
     },
     "Single" : {
       "extractionState" : "stale",
@@ -2298,6 +2402,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Passer les publicités est une option à activer et peut aller à l'encontre des conditions d'utilisation de YouTube."
+          }
+        }
+      }
+    },
+    "Skipping ads may go against YouTube's terms of service; turn it off if you prefer to watch them." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer les publicités peut aller à l’encontre des conditions d’utilisation de YouTube ; désactivez l’option si vous préférez les voir."
           }
         }
       }

@@ -142,19 +142,7 @@ struct AddToPlaylistSheet: View {
     @State private var newPrivacy: PlaylistPrivacyStatus = .private
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if let model {
-                    self.content(model)
-                } else {
-                    ProgressView()
-                }
-            }
-            .navigationTitle("Add to Playlist")
-            .inlineNavigationTitle()
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } }
-            }
+        self.chrome
             .overlay(alignment: .bottom) {
                 if let message = self.model?.message {
                     Text(message)
@@ -162,14 +150,13 @@ struct AddToPlaylistSheet: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .glassEffect(.regular, in: .capsule)
-                        .padding(.bottom, 16)
+                        .padding(.bottom, Platform.isMac ? 64 : 16)
                         .task {
                             try? await Task.sleep(for: .seconds(2.5))
                             self.model?.message = nil
                         }
                 }
             }
-        }
         .adaptiveSheetSize()
         .task {
             let model = self.model ?? AddToPlaylistModel(source: self.source, client: self.environment.client)
@@ -194,6 +181,69 @@ struct AddToPlaylistSheet: View {
         }
     }
 
+    /// iOS: a navigation sheet with the close button. macOS: a sheet with its title in the
+    /// content and the actions at the bottom, New Playlist… on the leading side, Done (Return)
+    /// on the trailing side.
+    @ViewBuilder
+    private var chrome: some View {
+        #if os(iOS)
+        NavigationStack {
+            self.loadedContent
+                .navigationTitle("Add to Playlist")
+                .inlineNavigationTitle()
+                .toolbar { SheetCloseButton { self.dismiss() } }
+        }
+        #else
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Add to Playlist").font(.headline)
+                if let title = self.source.displayTitle {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            Divider()
+            self.loadedContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Divider()
+            HStack(spacing: 12) {
+                Button("New Playlist…") { self.isCreating = true }
+                    .disabled(self.model?.phase != .loaded)
+                self.privacyPicker
+                    .fixedSize()
+                Spacer()
+                Button("Done") { self.dismiss() }
+                    .keyboardShortcut(.defaultAction)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+        }
+        #endif
+    }
+
+    @ViewBuilder
+    private var loadedContent: some View {
+        if let model {
+            self.content(model)
+        } else {
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var privacyPicker: some View {
+        Picker("Privacy", selection: self.$newPrivacy) {
+            Text("Private").tag(PlaylistPrivacyStatus.private)
+            Text("Unlisted").tag(PlaylistPrivacyStatus.unlisted)
+            Text("Public").tag(PlaylistPrivacyStatus.public)
+        }
+        .pickerStyle(.menu)
+    }
+
     @ViewBuilder
     private func content(_ model: AddToPlaylistModel) -> some View {
         switch model.phase {
@@ -203,18 +253,16 @@ struct AddToPlaylistSheet: View {
             LoadFailureView(message: message) { Task { await model.load() } }
         case .loaded:
             List {
-                Section {
-                    Button {
-                        self.isCreating = true
-                    } label: {
-                        Label("New Playlist", systemImage: "plus.circle.fill")
+                // macOS has these in the sheet's bottom bar.
+                if !Platform.isMac {
+                    Section {
+                        Button {
+                            self.isCreating = true
+                        } label: {
+                            Label("New Playlist", systemImage: "plus.circle.fill")
+                        }
+                        self.privacyPicker
                     }
-                    Picker("Privacy", selection: self.$newPrivacy) {
-                        Text("Private").tag(PlaylistPrivacyStatus.private)
-                        Text("Unlisted").tag(PlaylistPrivacyStatus.unlisted)
-                        Text("Public").tag(PlaylistPrivacyStatus.public)
-                    }
-                    .pickerStyle(.menu)
                 }
                 Section("Your playlists") {
                     ForEach(model.options) { option in
@@ -233,16 +281,21 @@ struct AddToPlaylistSheet: View {
                                 }
                                 Spacer()
                                 if model.busyId == option.playlistId {
-                                    ProgressView()
+                                    ProgressView().controlSize(.small)
                                 } else if model.added.contains(option.playlistId) {
                                     Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.brand)
                                 }
                             }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                         .disabled(model.added.contains(option.playlistId))
                     }
                 }
             }
+            #if os(macOS)
+            .listStyle(.inset)
+            #endif
         }
     }
 }

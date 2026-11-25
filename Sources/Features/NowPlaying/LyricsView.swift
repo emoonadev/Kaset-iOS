@@ -25,7 +25,7 @@ struct LyricsSheet: View {
             }
             .navigationTitle("Lyrics")
             .inlineNavigationTitle()
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } } }
+            .toolbar { SheetCloseButton { self.dismiss() } }
         }
         .task(id: state.videoId) {
             guard let videoId = state.videoId else { return }

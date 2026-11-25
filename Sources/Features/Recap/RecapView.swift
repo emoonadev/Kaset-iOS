@@ -18,15 +18,18 @@ struct RecapView: View {
     var body: some View {
         let plays = self.environment.listening.plays
         let recap = Recap(plays: plays, interval: self.interval)
+        let canGoBack = plays.first.map { $0.startedAt < recap.interval.start } ?? false
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                Picker("Period", selection: self.$period) {
-                    ForEach(RecapPeriod.allCases) { Text($0.title).tag($0) }
+                if Platform.isMac {
+                    // The period controls are in the window toolbar, as in Calendar.
+                    Text(recap.interval.title())
+                        .font(.largeTitle.bold())
+                        .accessibilityAddTraits(.isHeader)
+                } else {
+                    self.periodPicker
+                    self.periodHeader(recap, canGoBack: canGoBack)
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: self.period) { _, _ in self.offset = 0 }
-
-                self.periodHeader(recap, canGoBack: plays.first.map { $0.startedAt < recap.interval.start } ?? false)
 
                 if recap.plays == 0 {
                     ContentUnavailableView {
@@ -52,6 +55,44 @@ struct RecapView: View {
             .frame(maxWidth: Platform.isMac ? 820 : .infinity, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: Platform.isMac ? .leading : .center)
         }
+        .onChange(of: self.period) { _, _ in self.offset = 0 }
+        #if os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                self.periodPicker
+                    .fixedSize()
+            }
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button("Previous", systemImage: "chevron.left") { self.offset -= 1 }
+                    .disabled(!canGoBack)
+                    .help("Previous period")
+                Button("Next", systemImage: "chevron.right") { self.offset += 1 }
+                    .disabled(self.offset >= 0)
+                    .help("Next period")
+                if recap.plays > 0 {
+                    self.shareLink(recap)
+                        .help("Share")
+                }
+            }
+        }
+        #endif
+    }
+
+    private var periodPicker: some View {
+        Picker("Period", selection: self.$period) {
+            ForEach(RecapPeriod.allCases) { Text($0.title).tag($0) }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+    }
+
+    private func shareLink(_ recap: Recap) -> some View {
+        ShareLink(
+            item: RecapCardImage(recap: recap),
+            preview: SharePreview(Text("My listening recap"), image: Image(systemName: "chart.bar"))
+        ) {
+            Label("Share", systemImage: "square.and.arrow.up")
+        }
     }
 
     // MARK: - Sections
@@ -65,12 +106,8 @@ struct RecapView: View {
             Text(recap.interval.title()).font(.headline)
             Spacer()
             if recap.plays > 0 {
-                ShareLink(
-                    item: RecapCardImage(recap: recap),
-                    preview: SharePreview(Text("My listening recap"), image: Image(systemName: "chart.bar"))
-                ) {
-                    Image(systemName: "square.and.arrow.up")
-                }
+                self.shareLink(recap)
+                    .labelStyle(.iconOnly)
             }
             Button("Next", systemImage: "chevron.right") { self.offset += 1 }
                 .labelStyle(.iconOnly)

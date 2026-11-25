@@ -14,6 +14,10 @@ struct MediaCard: View {
     /// `nil` fills the proposed width (grids).
     var width: CGFloat? = AdaptiveLayout.cardWidth
 
+    /// macOS shows the play button when the pointer is over the card, as Music does; touch
+    /// screens have no hover, so iOS always shows it.
+    @State private var isHovering = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             // The square sets the size; the artwork only fills it. Drawn directly, a wide
@@ -47,6 +51,9 @@ struct MediaCard: View {
         .frame(width: self.width, alignment: .leading)
         .frame(maxWidth: self.width == nil ? .infinity : nil, alignment: .leading)
         .multilineTextAlignment(.leading)
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.15)) { self.isHovering = hovering }
+        }
     }
 
     /// Animated bars on the cover of whatever the player is on (song, playlist, album).
@@ -80,6 +87,8 @@ struct MediaCard: View {
             }
             .buttonStyle(.plain)
             .padding(8)
+            .opacity(Platform.isMac && !self.isHovering ? 0 : 1)
+            .help(Text("Play \(self.entity.title)"))
             .accessibilityLabel("Play \(self.entity.title)")
         default:
             EmptyView()

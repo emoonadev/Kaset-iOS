@@ -33,10 +33,9 @@ struct KasetApp: App {
         .commands { PlaybackCommands(environment: environment) }
 
         Settings {
-            SettingsView()
+            MacSettingsView()
                 .environment(environment)
                 .tint(Color.brand)
-                .frame(width: 520, height: 620)
         }
         #endif
     }

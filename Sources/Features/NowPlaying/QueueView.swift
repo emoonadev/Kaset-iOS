@@ -69,7 +69,7 @@ struct QueueView: View {
                     }
                     .accessibilityLabel("Repeat")
                 }
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } }
+                SheetCloseButton { self.dismiss() }
             }
         }
         .queueNoticeBanner()

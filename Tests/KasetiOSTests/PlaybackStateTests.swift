@@ -103,8 +103,13 @@ struct AdStateTests {
         #expect(!PlaybackState().applying(["paused": false, "ad": false]).isAd)
     }
 
-    @Test func adSkipIsOffByDefault() {
-        UserDefaults.standard.removeObject(forKey: AdSkip.storageKey)
+    @Test func adSkipIsOnByDefaultAndCanBeTurnedOff() {
+        let defaults = UserDefaults.standard
+        let saved = defaults.object(forKey: AdSkip.storageKey)
+        defer { defaults.set(saved, forKey: AdSkip.storageKey) }
+        defaults.removeObject(forKey: AdSkip.storageKey)
+        #expect(AdSkip.isEnabled)
+        defaults.set(false, forKey: AdSkip.storageKey)
         #expect(!AdSkip.isEnabled)
     }
 }

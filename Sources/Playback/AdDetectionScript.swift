@@ -79,7 +79,8 @@ enum AdDetectionScript {
 enum AdSkip {
     static let storageKey = "settings.adAutoSkip"
 
+    /// On unless the user turned it off.
     static var isEnabled: Bool {
-        UserDefaults.standard.bool(forKey: self.storageKey)
+        UserDefaults.standard.object(forKey: self.storageKey) as? Bool ?? true
     }
 }

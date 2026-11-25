@@ -79,6 +79,23 @@ extension View {
     }
 }
 
+/// The dismiss button of a sheet that has nothing to confirm: the iOS 26 close (×) button, and
+/// a "Done" button bound to Return on macOS.
+struct SheetCloseButton: ToolbarContent {
+    let action: () -> Void
+
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            #if os(iOS)
+            Button(role: .close, action: self.action)
+            #else
+            Button("Done", action: self.action)
+                .keyboardShortcut(.defaultAction)
+            #endif
+        }
+    }
+}
+
 /// Small platform switches for code shared by the iOS and macOS apps.
 enum Platform {
     /// Application Support for the app's own files. On iOS the container is the app's; the macOS
