@@ -53,9 +53,64 @@ interface, with your own YouTube Music account.
 
 ## Download
 
-The macOS app (macOS 26, Apple silicon and Intel) is built automatically every day, when the changes merged into `develop` are shipped to `main`: grab the latest DMG from [Releases](https://github.com/emoonadev/Spool/releases/latest), open it and drag Spool to Applications.
+The macOS app (macOS 26, Apple silicon and Intel) and an iPhone / iPad `.ipa` are built automatically every day, when the changes merged into `develop` are shipped to `main`. Grab the latest files from [Releases](https://github.com/emoonadev/Spool/releases/latest).
+
+- **Mac:** open the DMG and drag Spool to Applications.
+- **iPhone / iPad:** no Xcode needed, see [Install on iPhone without Xcode](#install-on-iphone-without-xcode).
 
 The app is not notarized, so on first launch right-click Spool and choose **Open** (or go to System Settings → Privacy &amp; Security → **Open Anyway**), or run `xattr -dr com.apple.quarantine /Applications/Spool.app`.
+
+## Install on iPhone without Xcode
+
+You do not need Xcode, a developer account or any coding. Spool is not on the App Store, so you
+install the `.ipa` file from [Releases](https://github.com/emoonadev/Spool/releases/latest) with a
+free sideloading app, which signs it with your own Apple ID.
+
+**What you need:** an iPhone or iPad on iOS 26, a Mac or Windows PC, a USB cable, and an Apple ID
+(a free one is fine).
+
+### 1. Turn on Developer Mode on the iPhone (one time)
+
+*Settings → Privacy & Security → Developer Mode*, switch it on and restart when asked. The switch
+only appears after you first try to install an app with one of the tools below.
+
+### 2. Install the app
+
+Pick **one** tool.
+
+**Option A: Sideloadly** (simplest, nothing stays running)
+
+1. Install [Sideloadly](https://sideloadly.io) on your Mac or PC.
+2. Plug in the iPhone and tap **Trust** on it if asked.
+3. Download `Spool-<version>-iOS.ipa` from Releases and drag it onto Sideloadly.
+4. Type your Apple ID, then click **Start** and enter your password if asked.
+5. On the iPhone, open *Settings → General → VPN & Device Management*, tap your Apple ID and
+   choose **Trust**.
+6. Open Spool.
+
+**Option B: AltStore or SideStore** (refreshes itself every week while your computer is on)
+
+1. Follow the setup guide for [AltStore](https://faq.altstore.io) or
+   [SideStore](https://docs.sidestore.io) to get the store app on your iPhone.
+2. Download `Spool-<version>-iOS.ipa` on the iPhone (from Releases in Safari).
+3. Open it with AltStore / SideStore (Share → AltStore), or use **My Apps → +** and pick the file.
+4. Trust your Apple ID in *Settings → General → VPN & Device Management*, then open Spool.
+
+### 3. Keep it working
+
+With a free Apple ID the app stops opening after **7 days**. Repeat step 2 (or let AltStore /
+SideStore refresh it) to keep it going. Your sign-in and settings stay. Free accounts are also
+limited to three sideloaded apps at once.
+
+### Troubleshooting
+
+- *"Untrusted Developer"*: do step 5 / 4 above (trust your Apple ID in *VPN & Device Management*).
+- *Developer Mode is missing*: try installing once, then check *Privacy & Security* again.
+- *Install fails with an App ID limit message*: free accounts allow a few new App IDs per week.
+  Wait a few days or remove another sideloaded app.
+- CarPlay is not available in sideloaded apps (see [Known limitations](#known-limitations)).
+
+Comfortable with Xcode? Build it yourself, see [Build and run](#build-and-run).
 
 ## Features
 
@@ -148,7 +203,8 @@ the Xcode project is generated and not committed.
 
 ### Sideloading with a free Apple ID
 
-The app is meant to be sideloaded, not distributed through the App Store:
+The app is meant to be sideloaded, not distributed through the App Store (if you do not have
+Xcode, see [Install on iPhone without Xcode](#install-on-iphone-without-xcode)):
 
 - A **free Apple ID** works, but the provisioning profile expires after **7 days** and you can
   have a limited number of apps and App IDs; re-run from Xcode to renew it.
