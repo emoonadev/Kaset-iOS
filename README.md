@@ -70,6 +70,17 @@ InnerTube client, playback engine and feature screens with iOS, but uses a deskt
 - Lyrics and queue in a panel on the right.
 - Paging arrows on horizontal shelves, keyboard and trackpad friendly.
 
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/mac-home.png" alt="macOS Home" width="420"></td>
+    <td align="center"><img src="docs/screenshots/mac-playlist.png" alt="macOS Playlist" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Home</b><br>Sidebar, shelves and player bar</sub></td>
+    <td align="center"><sub><b>Mix</b><br>Playlist page with Play, Shuffle and Regenerate</sub></td>
+  </tr>
+</table>
+
 ## How it works
 
 ```
