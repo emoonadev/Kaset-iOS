@@ -213,7 +213,14 @@
       }
     },
     "Accounts" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comptes"
+          }
+        }
+      }
     },
     "Add artists from the suggestions or search for them." : {
       "localizations" : {
@@ -322,6 +329,16 @@
         }
       }
     },
+    "Albums and singles from the artists you follow and play the most show up on Home. The check runs once a day, when Spool is open." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les albums et singles des artistes que vous suivez et écoutez le plus apparaissent dans l’accueil. La vérification a lieu une fois par jour, quand Spool est ouvert."
+          }
+        }
+      }
+    },
     "All" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -373,12 +390,72 @@
         }
       }
     },
+    "General" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Général"
+          }
+        }
+      }
+    },
+    "New Playlist…" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouvelle playlist…"
+          }
+        }
+      }
+    },
+    "Next period" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Période suivante"
+          }
+        }
+      }
+    },
     "Notifications are turned off for Spool in System Settings." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les notifications de Spool sont désactivées dans Réglages Système."
+          }
+        }
+      }
+    },
+    "Play %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire %@"
+          }
+        }
+      }
+    },
+    "Previous period" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Période précédente"
+          }
+        }
+      }
+    },
+    "Remove from Playlist" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer de la playlist"
           }
         }
       }
@@ -399,6 +476,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les clips sont lus dans leur version titre quand YouTube Music en propose une (Premium), qui peut différer un peu du clip ; les autres vidéos sont chargées à la qualité la plus basse. L'app n'affiche jamais la vidéo : seules les données sont économisées."
+          }
+        }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager"
           }
         }
       }
@@ -2151,8 +2238,25 @@
         }
       }
     },
+    "Signed out. Click to sign in again." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecté. Cliquez pour vous reconnecter."
+          }
+        }
+      }
+    },
     "Signed out. Tap to sign in again." : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecté. Touchez pour vous reconnecter."
+          }
+        }
+      }
     },
     "Single" : {
       "extractionState" : "stale",
