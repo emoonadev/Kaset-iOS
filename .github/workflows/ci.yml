@@ -5,9 +5,15 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-test:
+  ios:
+    name: iOS (build + tests)
     runs-on: macos-26
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -17,11 +23,68 @@ jobs:
       - name: Generate the Xcode project
         run: xcodegen generate
 
+      - name: Pick an iOS Simulator
+        id: sim
+        # Hard-coding a device name (e.g. "iPhone 17") is brittle: the runner's
+        # simulator set can differ between images, and CoreSimulator sometimes
+        # reports no devices right after boot. Resolve one dynamically on the
+        # newest iOS runtime, retrying while CoreSimulator warms up, and create
+        # a device if the runtime exists but has no iPhone.
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            RUNTIME=$(xcrun simctl list runtimes available -j \
+              | jq -r '[.runtimes[] | select(.platform == "iOS")] | sort_by(.version | split(".") | map(tonumber)) | last | .identifier // empty')
+            if [ -n "$RUNTIME" ]; then
+              UDID=$(xcrun simctl list devices available -j \
+                | jq -r --arg rt "$RUNTIME" '(.devices[$rt] // []) | map(select(.name | startswith("iPhone"))) | ((map(select(.name == "iPhone 17")) + .) | first | .udid) // empty')
+              if [ -z "$UDID" ]; then
+                DEVICE_TYPE=$(xcrun simctl list runtimes available -j \
+                  | jq -r --arg rt "$RUNTIME" '.runtimes[] | select(.identifier == $rt) | [.supportedDeviceTypes[] | select(.productFamily == "iPhone")] | ((map(select(.name == "iPhone 17")) + .) | first | .identifier) // empty')
+                if [ -n "$DEVICE_TYPE" ]; then
+                  UDID=$(xcrun simctl create "CI iPhone" "$DEVICE_TYPE" "$RUNTIME")
+                fi
+              fi
+              if [ -n "${UDID:-}" ]; then
+                echo "Using simulator $UDID on $RUNTIME"
+                echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            fi
+            echo "No iOS simulator available yet (attempt $attempt), retrying..."
+            sleep 10
+          done
+          xcrun simctl list
+          echo "::error::No iOS simulator available on this runner"
+          exit 1
+
       - name: Build and test (iOS Simulator)
         run: |
           xcodebuild test \
             -project KasetiOS.xcodeproj \
             -scheme KasetiOS \
-            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO
+
+  macos:
+    name: macOS (build)
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate the Xcode project
+        run: xcodegen generate
+
+      - name: Build (macOS)
+        run: |
+          xcodebuild build \
+            -project KasetiOS.xcodeproj \
+            -scheme KasetMac \
+            -destination 'platform=macOS' \
             -derivedDataPath build/dd \
             CODE_SIGNING_ALLOWED=NO
