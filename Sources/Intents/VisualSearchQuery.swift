@@ -1,5 +1,5 @@
 // The simulator SDK does not ship this framework, so it only builds for devices.
-#if canImport(VisualIntelligence)
+#if canImport(VisualIntelligence) && os(iOS)
 import AppIntents
 import Foundation
 import Vision

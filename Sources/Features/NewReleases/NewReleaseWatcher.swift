@@ -1,4 +1,6 @@
+#if os(iOS)
 import BackgroundTasks
+#endif
 import Foundation
 import Observation
 import UserNotifications
@@ -35,9 +37,8 @@ final class NewReleaseWatcher {
     var shelf: [NewRelease] { self.state.shelf }
 
     init(fileURL: URL? = nil) {
-        let url = fileURL ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            // v4: earlier versions shelved undated releases ahead of dated ones; start over.
-            .appendingPathComponent("new-releases-v4.json")
+        // v4: earlier versions shelved undated releases ahead of dated ones; start over.
+        let url = fileURL ?? Platform.appSupportFile("new-releases-v4.json")
         self.fileURL = url
         for old in ["new-releases.json", "new-releases-v2.json", "new-releases-v3.json"] {
             try? FileManager.default.removeItem(at: url.deletingLastPathComponent().appendingPathComponent(old))
@@ -67,6 +68,7 @@ final class NewReleaseWatcher {
     }
 
     func scheduleBackgroundCheck() {
+        #if os(iOS)
         let request = BGAppRefreshTaskRequest(identifier: Self.taskIdentifier)
         request.earliestBeginDate = NewReleaseSchedule.nextCheck(after: .now)
         do {
@@ -75,6 +77,7 @@ final class NewReleaseWatcher {
             // Simulator, or Background App Refresh turned off for the app.
             self.log.log("releases", "schedule failed: \(error.localizedDescription)")
         }
+        #endif
     }
 
     /// Asks for permission when the user turns notifications on. Returns whether they are allowed.

@@ -56,7 +56,7 @@ struct CollectionsView: View {
             .entityDestinations()
             .toolbar {
                 if self.environment.auth.state == .signedIn, self.selection == .library {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .trailingBar) {
                         Button("New Playlist", systemImage: "plus") { self.isCreatingPlaylist = true }
                     }
                 }
@@ -183,15 +183,9 @@ struct LibraryContentView: View {
                         } else {
                             ScrollView {
                                 LazyVStack(alignment: .leading, spacing: 24) {
-                                    if !content.playlists.isEmpty {
-                                        ShelfView(title: "Playlists", entities: content.playlists.map(MediaEntity.init))
-                                    }
-                                    if !content.albums.isEmpty {
-                                        ShelfView(title: "Albums", entities: content.albums.map(MediaEntity.init))
-                                    }
-                                    if !content.artists.isEmpty {
-                                        ShelfView(title: "Artists", entities: content.artists.map(MediaEntity.init))
-                                    }
+                                    self.section(String(localized: "Playlists"), content.playlists.map(MediaEntity.init))
+                                    self.section(String(localized: "Albums"), content.albums.map(MediaEntity.init))
+                                    self.section(String(localized: "Artists"), content.artists.map(MediaEntity.init))
                                 }
                                 .padding(.vertical)
                             }
@@ -207,6 +201,31 @@ struct LibraryContentView: View {
             let model = self.model ?? LibraryModel(client: self.environment.client)
             self.model = model
             await model.load()
+        }
+    }
+
+    /// A shelf on the phone; on the Mac window, a titled grid that uses the width.
+    @ViewBuilder
+    private func section(_ title: String, _ entities: [MediaEntity]) -> some View {
+        if !entities.isEmpty {
+            if Platform.isMac {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(title)
+                        .font(.title2.weight(.bold))
+                        .accessibilityAddTraits(.isHeader)
+                    LazyVGrid(
+                        columns: [GridItem(.adaptive(minimum: AdaptiveLayout.gridMinimum), spacing: AdaptiveLayout.cardSpacing, alignment: .top)],
+                        spacing: 20
+                    ) {
+                        ForEach(entities) { entity in
+                            MediaActions(entity: entity) { MediaCard(entity: entity, width: nil) }
+                        }
+                    }
+                }
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+            } else {
+                ShelfView(title: title, entities: entities)
+            }
         }
     }
 }

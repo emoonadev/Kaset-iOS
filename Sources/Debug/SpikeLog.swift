@@ -14,7 +14,7 @@ final class SpikeLog: ObservableObject {
     private let formatter: DateFormatter
 
     private init() {
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let docs = Platform.logFolder
         self.fileURL = docs.appendingPathComponent("spike-log.txt")
         self.formatter = DateFormatter()
         self.formatter.dateFormat = "HH:mm:ss.SSS"
