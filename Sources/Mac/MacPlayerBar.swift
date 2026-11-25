@@ -295,12 +295,12 @@ private struct MacProgressSection: View {
         .opacity(self.state.duration > 0 ? 1 : 0.5)
         .accessibilityElement()
         .accessibilityLabel("Playback position")
-        .accessibilityValue("\(Self.format(self.state.position())) of \(Self.format(self.state.duration))")
+        .accessibilityValue("\(Self.format(self.state.displayedPosition())) of \(Self.format(self.state.duration))")
     }
 
     private func displayedPosition(at date: Date, duration: TimeInterval) -> TimeInterval {
         if let dragFraction { return dragFraction * duration }
-        let live = self.state.position(at: date)
+        let live = self.state.displayedPosition(at: date)
         if let pending = self.pendingSeek, date < pending.until, abs(live - pending.target) > 2 {
             return pending.target
         }

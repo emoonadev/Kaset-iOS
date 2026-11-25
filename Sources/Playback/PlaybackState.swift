@@ -41,6 +41,8 @@ struct PlaybackState: Equatable, Sendable {
     var bufferedAhead: TimeInterval?
     var visibility: String?
     var updatedAt = Date.distantPast
+    /// Set natively from a skip until the page reports the new track (`TrackChangeHold`).
+    var isChangingTrack = false
 
     /// Position now, extrapolated from the last report while playing.
     func position(at date: Date = Date()) -> TimeInterval {
@@ -48,6 +50,12 @@ struct PlaybackState: Equatable, Sendable {
         let elapsed = max(0, date.timeIntervalSince(self.updatedAt))
         let value = self.position + elapsed
         return self.duration > 0 ? min(value, self.duration) : value
+    }
+
+    /// What the progress bar, lyrics and lock screen show: 0 from the tap on next / previous,
+    /// while the page still reports the old track for up to a second.
+    func displayedPosition(at date: Date = Date()) -> TimeInterval {
+        self.isChangingTrack ? 0 : self.position(at: date)
     }
 
     /// Applies a `state` message from the page script. Absent keys keep their previous value
@@ -135,4 +143,30 @@ struct PlaybackIdentity: Equatable, Sendable {
     var listId: String?
     var album: String?
     var isPlaying = false
+}
+
+/// Holds the displayed position at 0 from a skip until the page shows the change: another
+/// track, or the same one started again (previous restarts a song past its first seconds).
+/// The page keeps reporting the old song in the meantime, so the bar would keep running on it.
+struct TrackChangeHold: Equatable, Sendable {
+    let fromVideoId: String
+    let fromPosition: TimeInterval
+    /// A skip the page ignored (end of the queue) must not freeze the bar for good.
+    let until: Date
+
+    static let timeout: TimeInterval = 5
+
+    init(from state: PlaybackState, at date: Date) {
+        self.fromVideoId = state.videoId ?? ""
+        self.fromPosition = state.position(at: date)
+        self.until = date.addingTimeInterval(Self.timeout)
+    }
+
+    /// Whether a report just applied (`state`) shows the change has happened.
+    func isReleased(by state: PlaybackState, at date: Date) -> Bool {
+        if date >= self.until { return true }
+        // A new track starts at 0; the media element can still hold the old time for a moment.
+        guard state.position <= 5 else { return false }
+        return state.videoId != self.fromVideoId || state.position < self.fromPosition - 1
+    }
 }
