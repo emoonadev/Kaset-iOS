@@ -33,7 +33,7 @@ struct RecapView: View {
                         Label("Nothing played", systemImage: "chart.bar")
                     } description: {
                         if plays.isEmpty {
-                            Text("Plays are recorded on this iPhone from now on, once a song has played for 30 seconds.")
+                            Text(Platform.isMac ? "Plays are recorded on this Mac from now on, once a song has played for 30 seconds." : "Plays are recorded on this iPhone from now on, once a song has played for 30 seconds.")
                         } else {
                             Text("No songs were played in this period.")
                         }
@@ -46,8 +46,11 @@ struct RecapView: View {
                     self.newArtists(recap)
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, Platform.isMac ? AdaptiveLayout.horizontalPadding : 16)
             .padding(.bottom, 24)
+            // A readable column on the Mac window instead of edge-to-edge lines.
+            .frame(maxWidth: Platform.isMac ? 820 : .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: Platform.isMac ? .leading : .center)
         }
     }
 
@@ -193,7 +196,13 @@ struct RecapCardImage: Transferable {
             try await MainActor.run {
                 let renderer = ImageRenderer(content: RecapCard(recap: item.recap))
                 renderer.scale = 3
+                #if os(iOS)
                 guard let data = renderer.uiImage?.pngData() else { throw CocoaError(.fileWriteUnknown) }
+                #else
+                guard let image = renderer.cgImage,
+                      let data = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
+                else { throw CocoaError(.fileWriteUnknown) }
+                #endif
                 return data
             }
         }
@@ -227,7 +236,7 @@ struct RecapCard: View {
         .padding(28)
         .frame(width: 360, height: 640, alignment: .topLeading)
         .background(
-            LinearGradient(colors: [Color.brand, Color(red: 0.25, green: 0.05, blue: 0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            LinearGradient(colors: [Color.brand, Color(red: 0.05, green: 0.08, blue: 0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
         )
     }
 

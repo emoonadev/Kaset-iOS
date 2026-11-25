@@ -18,10 +18,10 @@ struct MixesShelf: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("My Mixes")
                 .font(.title2.weight(.bold))
-                .padding(.horizontal, 20)
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
                 .accessibilityAddTraits(.isHeader)
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 16) {
+                LazyHStack(alignment: .top, spacing: AdaptiveLayout.cardSpacing) {
                     Button { self.startNewMix() } label: {
                         NewMixCard(isFirst: library.mixes.isEmpty, isCreating: library.isCreating)
                     }
@@ -34,7 +34,7 @@ struct MixesShelf: View {
                                 .overlay(alignment: .top) {
                                     if library.busyPlaylistId == mix.playlistId {
                                         ProgressView()
-                                            .frame(width: 156, height: 156)
+                                            .frame(width: AdaptiveLayout.cardWidth, height: AdaptiveLayout.cardWidth)
                                             .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                                     }
                                 }
@@ -44,7 +44,7 @@ struct MixesShelf: View {
                         .contextMenu { self.menu(for: mix) }
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
                 .padding(.vertical, 4)
             }
         }
@@ -99,7 +99,7 @@ struct MixesShelf: View {
 private struct NewMixCard: View {
     let isFirst: Bool
     let isCreating: Bool
-    private let width: CGFloat = 156
+    private let width: CGFloat = AdaptiveLayout.cardWidth
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {

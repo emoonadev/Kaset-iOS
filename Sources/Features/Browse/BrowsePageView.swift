@@ -127,12 +127,15 @@ struct ShelfView: View {
     /// Shown as a "See all" link next to the title.
     var seeAll: SeeAllDestination?
 
-    private static let chipMinimumWidth: CGFloat = 92
+    private static let chipMinimumWidth: CGFloat = AdaptiveLayout.chipMinimumWidth
     private static let chipSpacing: CGFloat = 10
     private static let collapsedRows = 3
 
     @State private var isExpanded = false
     @State private var gridWidth: CGFloat = 0
+    /// Card the row is scrolled to, and the row's width (macOS paging arrows).
+    @State private var scrolledID: MediaEntity.ID?
+    @State private var rowWidth: CGFloat = 0
 
     /// How many chips fit on a line, matching what the adaptive grid will lay out.
     private var columns: Int {
@@ -162,8 +165,11 @@ struct ShelfView: View {
                         NavigationLink("See all", value: seeAll)
                             .font(.subheadline)
                     }
+                    if Platform.isMac, !self.isMoodGrid, self.canPage {
+                        self.pagingArrows
+                    }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
             }
             if self.isMoodGrid {
                 let canCollapse = self.entities.count > self.collapsedLimit
@@ -179,14 +185,14 @@ struct ShelfView: View {
                                 .multilineTextAlignment(.center)
                                 .lineLimit(2)
                                 .minimumScaleFactor(0.85)
-                                .frame(maxWidth: .infinity, minHeight: 52)
+                                .frame(maxWidth: .infinity, minHeight: Platform.isMac ? 60 : 52)
                                 .padding(.horizontal, 8)
                                 .glassEffect(.regular, in: .rect(cornerRadius: 14))
                         }
                     }
                 }
-                .padding(.horizontal, 20)
-                .onGeometryChange(for: CGFloat.self) { $0.size.width - 40 } action: { self.gridWidth = $0 }
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width - 2 * AdaptiveLayout.horizontalPadding } action: { self.gridWidth = $0 }
 
                 if canCollapse {
                     Button {
@@ -205,16 +211,65 @@ struct ShelfView: View {
                 }
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(alignment: .top, spacing: 16) {
+                    LazyHStack(alignment: .top, spacing: AdaptiveLayout.cardSpacing) {
                         ForEach(self.entities) { entity in
                             MediaActions(entity: entity) { MediaCard(entity: entity) }
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .scrollTargetLayout()
+                    .padding(.horizontal, AdaptiveLayout.horizontalPadding)
                     .padding(.vertical, 4)
                 }
+                .scrollPosition(id: self.$scrolledID, anchor: .leading)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { self.rowWidth = $0 }
             }
         }
+    }
+
+    // MARK: Paging (macOS)
+
+    /// Cards fully visible in the row.
+    private var cardsPerPage: Int {
+        let step = AdaptiveLayout.cardWidth + AdaptiveLayout.cardSpacing
+        let usable = self.rowWidth - 2 * AdaptiveLayout.horizontalPadding + AdaptiveLayout.cardSpacing
+        return max(1, Int(usable / step))
+    }
+
+    private var canPage: Bool { self.entities.count > self.cardsPerPage }
+
+    private var currentIndex: Int {
+        self.scrolledID.flatMap { id in self.entities.firstIndex { $0.id == id } } ?? 0
+    }
+
+    /// Back / forward by a page, like the shelf arrows of Kaset for macOS (a mouse wheel
+    /// cannot scroll sideways).
+    private var pagingArrows: some View {
+        HStack(spacing: 4) {
+            self.arrow("chevron.left", label: "Previous", enabled: self.currentIndex > 0) { -1 }
+            self.arrow(
+                "chevron.right", label: "Next",
+                enabled: self.currentIndex + self.cardsPerPage < self.entities.count
+            ) { 1 }
+        }
+        .padding(.leading, 6)
+    }
+
+    private func arrow(_ symbol: String, label: LocalizedStringKey, enabled: Bool, direction: @escaping () -> Int) -> some View {
+        Button {
+            let last = max(self.entities.count - self.cardsPerPage, 0)
+            let target = min(max(self.currentIndex + direction() * self.cardsPerPage, 0), last)
+            withAnimation(.easeInOut(duration: 0.35)) { self.scrolledID = self.entities[target].id }
+        } label: {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .semibold))
+                .frame(width: 26, height: 26)
+                .background(.quaternary, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.35)
+        .help(Text(label))
+        .accessibilityLabel(Text(label))
     }
 }
 
@@ -249,7 +304,7 @@ struct SeeAllView: View {
         } else {
             self.grid
                 .navigationTitle(self.destination.title)
-                .navigationBarTitleDisplayMode(.inline)
+                .inlineNavigationTitle()
                 .task { await self.load() }
         }
     }
@@ -274,14 +329,14 @@ struct SeeAllView: View {
                                     .font(.title2.weight(.bold))
                                     .accessibilityAddTraits(.isHeader)
                             }
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16, alignment: .top)], spacing: 20) {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: AdaptiveLayout.gridMinimum), spacing: AdaptiveLayout.cardSpacing, alignment: .top)], spacing: 20) {
                                 ForEach(section.items.map(MediaEntity.init)) { entity in
                                     MediaActions(entity: entity) { MediaCard(entity: entity, width: nil) }
                                 }
                             }
                         }
                     }
-                    .padding(20)
+                    .padding(AdaptiveLayout.horizontalPadding)
                 }
             }
         }

@@ -4,6 +4,14 @@ import SwiftUI
 /// history), artist search, and the options. Saving creates (or updates) the mix's private
 /// YouTube Music playlist; "Play" saves and starts it.
 struct MixEditorView: View {
+    private static var searchPlacement: SearchFieldPlacement {
+        #if os(iOS)
+        .navigationBarDrawer(displayMode: .always)
+        #else
+        .automatic
+        #endif
+    }
+
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
 
@@ -41,9 +49,9 @@ struct MixEditorView: View {
                     self.resultsSection
                 }
             }
-            .searchable(text: self.$query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search artists")
+            .searchable(text: self.$query, placement: Self.searchPlacement, prompt: "Search artists")
             .navigationTitle(self.isNew ? "New Mix" : "Edit Mix")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { self.dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -103,6 +111,7 @@ struct MixEditorView: View {
             }
             .task(id: self.query) { await self.search() }
         }
+        .macSheetFrame(width: 560, height: 720)
     }
 
     // MARK: - Sections

@@ -60,6 +60,29 @@ enum PlayerScripts {
         """
     }
 
+    /// `params` of YouTube Music's own "Shuffle" on a playlist (ytmusicapi uses the same value):
+    /// the server returns the list already shuffled, starting on a random track.
+    static let shuffleParams = "wAEB8gECKAE%3D"
+
+    /// Starts a playlist shuffled, inside the loaded web app (same mechanisms as
+    /// `watchEndpointScript`).
+    static func shuffledPlaylistScript(playlistId: String) -> String {
+        """
+        (function () {
+          const app = document.querySelector('ytmusic-app');
+          if (!app) { return false; }
+          const endpoint = { watchPlaylistEndpoint: { playlistId: \(self.literal(playlistId)), params: \(self.literal(self.shuffleParams)) } };
+          try {
+            if (typeof app.resolveCommand === 'function') { app.resolveCommand(endpoint); return 'resolveCommand'; }
+          } catch (e) {}
+          try {
+            app.dispatchEvent(new CustomEvent('yt-navigate', { bubbles: true, composed: true, detail: { endpoint: endpoint } }));
+            return 'yt-navigate';
+          } catch (e) { return false; }
+        })();
+        """
+    }
+
     /// Names on `ytmusic-app` that look like a navigation entry point; logged when the router
     /// is missing so a replacement can be found.
     static let routerCandidatesScript = """
@@ -202,8 +225,16 @@ enum PlayerScripts {
 
           // Shuffle / repeat live on the player bar. Selectors and attributes are best effort.
           const barEl = () => document.querySelector('ytmusic-player-bar');
-          const shuffleButton = () => { const b = barEl(); return b ? b.querySelector('.shuffle') : null; };
-          const repeatButton = () => { const b = barEl(); return b ? b.querySelector('.repeat') : null; };
+          // Newer web player: `ytmusic-wiz-player-controls` with `.ytmusicPlayerControls…Button` wrappers.
+          const wizButton = (name) => document.querySelector('.ytmusicPlayerControls' + name + 'Button button');
+          const shuffleButton = () => {
+            const b = barEl();
+            return (b ? b.querySelector('.shuffle') : null) || wizButton('Shuffle');
+          };
+          const repeatButton = () => {
+            const b = barEl();
+            return (b ? b.querySelector('.repeat') : null) || wizButton('Repeat');
+          };
           const shuffleOn = () => {
             const b = shuffleButton();
             if (!b) { return null; }
@@ -213,12 +244,19 @@ enum PlayerScripts {
             const b = barEl();
             const raw = b ? (b.getAttribute('repeat-mode_') || b.getAttribute('repeat-mode') || '') : '';
             const v = raw.toUpperCase();
-            return v === 'ALL' ? 'all' : (v === 'ONE' ? 'one' : 'off');
+            if (v) { return v === 'ALL' ? 'all' : (v === 'ONE' ? 'one' : 'off'); }
+            // Newer controls: pressed state plus the label (one / all), in any language.
+            const w = wizButton('Repeat');
+            if (!w || w.getAttribute('aria-pressed') !== 'true') { return 'off'; }
+            const label = (w.getAttribute('aria-label') || w.getAttribute('title') || '').toLowerCase();
+            return / 1$|one|titre|song|track|morceau|canción|brano|einen/.test(label) ? 'one' : 'all';
           };
 
           \(AdDetectionScript.detection)
           window.__kasetAdAutoSkip = \(AdSkip.isEnabled ? "true" : "false");
           const adNow = () => { try { return !!isAdShowing(); } catch (e) { return false; } };
+
+          \(DataSaver.script)
 
           // Seconds of the current track already loaded past the playhead (BufferScripts).
           const bufferAhead = () => {
@@ -421,6 +459,32 @@ enum PlayerScripts {
             },
             pause: () => { const m = media(); if (!m) { return 'no-media'; } markUserAction(); m.pause(); return 'pause()'; },
             toggle: () => click('playPause'),
+            // Page volume (0…1), used by the macOS player bar. The YouTube player keeps its own
+            // volume and reapplies it, so it is set there too.
+            // Audio diagnostics: element and YouTube player volume / mute, page visibility.
+            audio: () => {
+              const m = media();
+              const p = document.getElementById('movie_player');
+              const parts = [];
+              if (m) {
+                parts.push('el=' + m.tagName.toLowerCase(), 'muted=' + m.muted, 'vol=' + m.volume.toFixed(2),
+                  'paused=' + m.paused, 'rs=' + m.readyState, 'src=' + (m.currentSrc ? m.currentSrc.slice(0, 5) : 'none'));
+              } else {
+                parts.push('el=none');
+              }
+              if (p && p.isMuted) { parts.push('yt.muted=' + p.isMuted(), 'yt.vol=' + p.getVolume()); } else { parts.push('yt=none'); }
+              parts.push('vis=' + document.visibilityState, 'media#=' + document.querySelectorAll('video,audio').length);
+              return parts.join(' ');
+            },
+            setVolume: (v) => {
+              const value = Math.max(0, Math.min(1, Number(v) || 0));
+              const player = document.getElementById('movie_player');
+              if (player && player.setVolume) { player.setVolume(Math.round(value * 100)); }
+              if (player && player.unMute && value > 0) { player.unMute(); }
+              const m = media();
+              if (m) { m.volume = value; m.muted = value === 0; }
+              return 'volume ' + value;
+            },
             next: () => click('next'),
             previous: () => click('previous'),
             // Queue editing goes through the page's own queue items (selectors best effort).
@@ -648,7 +712,7 @@ enum PlayerScripts {
               });
               const sb = shuffleButton();
               add('shuffle', sb, sb ? 'on=' + shuffleOn() : 'not found', false);
-              const repeatAttr = bar && (bar.hasAttribute('repeat-mode_') || bar.hasAttribute('repeat-mode'));
+              const repeatAttr = (bar && (bar.hasAttribute('repeat-mode_') || bar.hasAttribute('repeat-mode'))) || !!wizButton('Repeat');
               add('repeat', repeatButton() && repeatAttr, (repeatButton() ? 'button' : 'no button') + ', ' + (repeatAttr ? 'mode=' + repeatMode() : 'no repeat-mode attribute'), false);
               let menu = null;
               try { menu = __kasetPlayerBarElement('menu'); } catch (e) {}

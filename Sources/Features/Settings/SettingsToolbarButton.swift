@@ -4,8 +4,11 @@ import SwiftUI
 /// Shows the user's avatar when signed in, a person glyph otherwise.
 struct SettingsToolbarButton: ToolbarContent {
     var body: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            SettingsSheetButton()
+        // macOS: the profile sits at the bottom of the sidebar and Settings is ⌘,.
+        if !Platform.isMac {
+            ToolbarItem(placement: .trailingBar) {
+                SettingsSheetButton()
+            }
         }
     }
 }

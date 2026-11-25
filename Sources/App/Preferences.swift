@@ -1,5 +1,9 @@
 import Foundation
+#if os(iOS)
 import UIKit
+#else
+import AppKit
+#endif
 
 /// Languages the YouTube Music API can be asked for (`hl`). Raw value is the stored setting.
 enum ContentLanguage: String, CaseIterable, Identifiable {
@@ -46,6 +50,10 @@ enum Haptics {
 
     static func tap() {
         guard self.isEnabled else { return }
+        #if os(iOS)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        #else
+        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
+        #endif
     }
 }

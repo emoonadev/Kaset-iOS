@@ -119,7 +119,7 @@ struct PlaylistDetailView: View {
             }
         }
         .navigationTitle(self.model?.renamedTitle ?? self.model?.detail?.title ?? self.fallbackTitle)
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
         .toolbar { self.detailToolbar }
         .alert("Rename Playlist", isPresented: self.$isRenaming) {
             TextField("Title", text: self.$renameText)
@@ -181,8 +181,14 @@ struct PlaylistDetailView: View {
         case .loaded:
             List {
                 if let detail = model.detail {
-                    Section { self.header(detail, model: model) }
-                        .listRowSeparator(.hidden)
+                    Section {
+                        if Platform.isMac {
+                            self.macHeader(detail, model: model)
+                        } else {
+                            self.header(detail, model: model)
+                        }
+                    }
+                    .listRowSeparator(.hidden)
                 }
                 Section {
                     ForEach(Array(model.tracks.enumerated()), id: \.element.id) { index, song in
@@ -252,6 +258,62 @@ struct PlaylistDetailView: View {
         .frame(maxWidth: .infinity)
     }
 
+    /// macOS: artwork on the left, the title big next to it and the actions under it, as in
+    /// Kaset for macOS and Apple Music.
+    private func macHeader(_ detail: PlaylistDetail, model: PlaylistDetailModel) -> some View {
+        HStack(alignment: .bottom, spacing: 24) {
+            ArtworkView(url: detail.thumbnailURL ?? self.thumbnailURL)
+                .frame(width: 220, height: 220)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(alignment: .topLeading) { self.nowPlayingBadge(detail, model: model) }
+                .shadow(color: .black.opacity(0.25), radius: 18, y: 10)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(detail.isAlbum ? "Album" : "Playlist")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Text(model.renamedTitle ?? detail.title)
+                    .font(.system(size: 30, weight: .bold))
+                    .lineLimit(2)
+                    .textSelection(.enabled)
+                Text(Self.byline(for: detail))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                if let mix = self.mix(detail) {
+                    Text("Mix of \(mix.artistSummary)")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                HStack(spacing: 10) {
+                    Button { self.playAll(model: model, shuffled: false) } label: {
+                        Label("Play", systemImage: "play.fill")
+                    }
+                    .buttonStyle(PrimaryActionButtonStyle())
+                    Button { self.playAll(model: model, shuffled: true) } label: {
+                        Label("Shuffle", systemImage: "shuffle")
+                    }
+                    .buttonStyle(SecondaryActionButtonStyle())
+                    if let mix = self.mix(detail) {
+                        Button { self.regenerate(mix, model: model) } label: {
+                            if self.isRegenerating {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                Label("Regenerate", systemImage: "arrow.triangle.2.circlepath")
+                            }
+                        }
+                        .buttonStyle(SecondaryActionButtonStyle())
+                        .disabled(self.isRegenerating)
+                    }
+                }
+                .frame(maxWidth: self.mix(detail) == nil ? 300 : 460)
+                .padding(.top, 6)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 16)
+    }
+
     /// Same cue as on the cards: this is the collection the player is on.
     @ViewBuilder
     private func nowPlayingBadge(_ detail: PlaylistDetail, model: PlaylistDetailModel) -> some View {
@@ -279,7 +341,7 @@ struct PlaylistDetailView: View {
     @ToolbarContentBuilder
     private var detailToolbar: some ToolbarContent {
         if let detail = self.model?.detail {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .trailingBar) {
                 Menu {
                     if detail.supportsLibraryToggle {
                         Button("Add to Library", systemImage: "plus") {
@@ -369,6 +431,7 @@ struct TrackRow: View {
     let onPlay: () -> Void
 
     @State private var isAddToPlaylistPresented = false
+    @State private var isHovering = false
 
     /// This row is the track the web player is on (not an ad, not another occurrence of a
     /// different song).
@@ -385,7 +448,7 @@ struct TrackRow: View {
             HStack(spacing: 12) {
                 if self.showsArtwork {
                     ArtworkView(url: self.song.thumbnailURL)
-                        .frame(width: 52, height: 52)
+                        .frame(width: AdaptiveLayout.trackArtwork, height: AdaptiveLayout.trackArtwork)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .overlay {
                             if self.isCurrent {
@@ -426,14 +489,24 @@ struct TrackRow: View {
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.secondary)
-                        .frame(width: 32, height: 44)
+                        .frame(width: 32, height: Platform.isMac ? 28 : 44)
                         .contentShape(Rectangle())
                 }
+                .menuIndicator(.hidden)
                 .neutralMenuTint()
+                .opacity(Platform.isMac && !self.isHovering ? 0 : 1)
+            }
+            .padding(.vertical, Platform.isMac ? 2 : 0)
+            .padding(.horizontal, Platform.isMac ? 6 : 0)
+            .background {
+                if Platform.isMac, self.isHovering {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous).fill(.primary.opacity(0.06))
+                }
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .onHover { self.isHovering = $0 }
         .disabled(!self.song.isPlayable)
         .neutralMenuTint()
         .contextMenu { self.menuItems }

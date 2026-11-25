@@ -212,6 +212,9 @@
         }
       }
     },
+    "Accounts" : {
+
+    },
     "Add artists from the suggestions or search for them." : {
       "localizations" : {
         "fr" : {
@@ -326,6 +329,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tout"
+          }
+        }
+      }
+    },
+    "Behavior" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comportement"
+          }
+        }
+      }
+    },
+    "Debug tools and diagnostics. You don't need these for everyday use." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outils de débogage et de diagnostic. Inutiles au quotidien."
+          }
+        }
+      }
+    },
+    "Developer" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Développeur"
+          }
+        }
+      }
+    },
+    "Save data on music videos" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Économiser des données sur les clips"
+          }
+        }
+      }
+    },
+    "Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les clips sont lus dans leur version titre quand YouTube Music en propose une (Premium), qui peut différer un peu du clip ; les autres vidéos sont chargées à la qualité la plus basse. L'app n'affiche jamais la vidéo : seules les données sont économisées."
           }
         }
       }
@@ -691,6 +744,9 @@
         }
       }
     },
+    "Each account keeps its own session, library and history. Playback stops when you switch." : {
+
+    },
     "Edit Mix" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -863,6 +919,9 @@
           }
         }
       }
+    },
+    "Kaset works without an account for browsing, search and playback. Sign in to see your library, liked songs and history." : {
+
     },
     "Kind" : {
       "extractionState" : "stale",
@@ -1595,7 +1654,6 @@
       }
     },
     "Playlists" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1616,7 +1674,14 @@
         }
       }
     },
+    "Plays are recorded on this device once a song has played for 30 seconds, separately for each account, while you are signed in. To share them between devices, pick the same iCloud Drive folder on each one." : {
+
+    },
+    "Plays are recorded on this device once a song has played for 30 seconds, separately for each account. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “%@” in it for this account." : {
+
+    },
     "Plays are recorded on this device once a song has played for 30 seconds. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “%@” in it." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1997,6 +2062,9 @@
         }
       }
     },
+    "Sign in to YouTube Music" : {
+
+    },
     "Sign in to YouTube Music in Kaset first." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2020,7 +2088,6 @@
       }
     },
     "Sign out" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2029,6 +2096,9 @@
           }
         }
       }
+    },
+    "Sign out of %@" : {
+
     },
     "Signed in" : {
       "extractionState" : "stale",
@@ -2040,6 +2110,9 @@
           }
         }
       }
+    },
+    "Signed out. Tap to sign in again." : {
+
     },
     "Single" : {
       "extractionState" : "stale",

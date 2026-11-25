@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Account, playback and content preferences, plus diagnostics entry points.
+/// Account, playback and content preferences. Debug tools live in `DeveloperSettingsView`.
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
@@ -8,9 +8,8 @@ struct SettingsView: View {
     @AppStorage(PlaybackAudioQuality.storageKey) private var audioQuality = PlaybackAudioQuality.auto.rawValue
     @AppStorage(ContentLanguage.storageKey) private var language = ContentLanguage.system.rawValue
     @AppStorage(Haptics.storageKey) private var haptics = true
-    @AppStorage("nativeNowPlaying") private var nativeNowPlaying = true
     @AppStorage(AdSkip.storageKey) private var adAutoSkip = false
-    @AppStorage("settings.handlePhoneCalls") private var handlePhoneCalls = true
+    @AppStorage(DataSaver.storageKey) private var dataSaver = true
     @AppStorage(BufferPolicy.adaptiveQualityStorageKey) private var adaptiveQuality = true
     @AppStorage(BufferPolicy.extendedStorageKey) private var extendedBuffer = false
     @AppStorage(NewReleaseWatcher.notificationsStorageKey) private var newReleaseNotifications = true
@@ -29,7 +28,9 @@ struct SettingsView: View {
                         ForEach(PlaybackAudioQuality.allCases) { Text($0.displayName).tag($0.rawValue) }
                     }
                     .onChange(of: self.audioQuality) { _, _ in self.environment.player.applyAudioQuality() }
+                    #if os(iOS)
                     Toggle("Haptic feedback", isOn: self.$haptics)
+                    #endif
                     Toggle("Skip ads automatically", isOn: self.$adAutoSkip)
                 } header: {
                     Text("Playback")
@@ -37,6 +38,13 @@ struct SettingsView: View {
                     Text("Skipping ads is an opt-in and may go against YouTube's terms of service.")
                 }
                 .onChange(of: self.adAutoSkip) { _, _ in self.environment.player.applyAdSkipSetting() }
+
+                Section {
+                    Toggle("Save data on music videos", isOn: self.$dataSaver)
+                        .onChange(of: self.dataSaver) { _, _ in self.environment.player.applyDataSaverSetting() }
+                } footer: {
+                    Text("Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data.")
+                }
 
                 Section {
                     Toggle("Lower quality on a weak network", isOn: self.$adaptiveQuality)
@@ -64,30 +72,32 @@ struct SettingsView: View {
                     Text("Changes the language of titles and shelves returned by YouTube Music.")
                 }
 
-                Section("Diagnostics") {
-                    Toggle("Native Now Playing card", isOn: self.$nativeNowPlaying)
-                    Toggle("Pause for phone calls (relaunch)", isOn: self.$handlePhoneCalls)
+                Section {
                     NavigationLink {
-                        PlayerHealthView(player: self.environment.player)
+                        DeveloperSettingsView()
                     } label: {
                         let failing = self.environment.player.healthReport?.failing.count ?? 0
-                        LabeledContent("Player health") {
+                        LabeledContent("Developer") {
                             if failing > 0 {
                                 Text("\(failing) failing").foregroundStyle(.red)
                             }
                         }
                     }
-                    Button("Inspect queue (log)") { self.environment.player.inspectQueue() }
-                    Button("Inspect buffer (log)") { self.environment.player.inspectBuffer() }
-                    NavigationLink("Playback debug") { PlaybackDebugView(player: self.environment.player) }
-                    NavigationLink("API debug") { APIDebugView(client: self.environment.client, player: self.environment.player) }
+                } footer: {
+                    Text("Debug tools and diagnostics. You don't need these for everyday use.")
                 }
             }
             .navigationTitle("Settings")
+            #if os(iOS)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } }
             }
-            .task(id: self.environment.auth.state) { await self.loadAccounts() }
+            #else
+            .formStyle(.grouped)
+            #endif
+            .task(id: AccountsLoadKey(state: self.environment.auth.state, revision: self.environment.accountRevision)) {
+                await self.loadAccounts()
+            }
         }
     }
 
@@ -161,7 +171,11 @@ struct SettingsView: View {
         } header: {
             Text("Listening recap")
         } footer: {
-            Text("Plays are recorded on this device once a song has played for 30 seconds. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “\(ListeningHistory.syncFileName)” in it.")
+            if let email = listening.accountEmail {
+                Text("Plays are recorded on this device once a song has played for 30 seconds, separately for each account. To share them between devices, pick the same iCloud Drive folder on each one: the app keeps a file named “\(ListeningHistory.syncFileName(for: email))” in it for this account.")
+            } else {
+                Text("Plays are recorded on this device once a song has played for 30 seconds, separately for each account, while you are signed in. To share them between devices, pick the same iCloud Drive folder on each one.")
+            }
         }
         .fileImporter(isPresented: self.$isPickingSyncFolder, allowedContentTypes: [.folder]) { result in
             guard case let .success(folder) = result else { return }
@@ -171,9 +185,50 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var accountSection: some View {
-        Section("Account") {
-            switch self.environment.auth.state {
-            case .signedIn:
+        let registry = self.environment.accounts
+        Section {
+            if self.environment.auth.state == .unknown {
+                ProgressView()
+            }
+            ForEach(registry.accounts) { account in
+                Button {
+                    let isActive = account.id == registry.activeID
+                    if isActive, self.environment.auth.state == .signedOut {
+                        self.dismiss()
+                        self.environment.signInAgain()
+                        return
+                    }
+                    guard !isActive else { return }
+                    Task {
+                        self.isSwitching = true
+                        await self.environment.switchGoogleAccount(to: account.id)
+                        self.isSwitching = false
+                    }
+                } label: {
+                    AccountRow(
+                        account: account,
+                        isActive: account.id == registry.activeID,
+                        isExpired: account.id == registry.activeID && self.environment.auth.state == .signedOut
+                    )
+                }
+                .foregroundStyle(.primary)
+                .disabled(self.isSwitching)
+            }
+            Button(registry.accounts.isEmpty ? "Sign in" : "Add account", systemImage: "plus.circle") {
+                self.dismiss()
+                self.environment.addAccount()
+            }
+            .disabled(self.isSwitching)
+        } header: {
+            Text("Accounts")
+        } footer: {
+            if registry.accounts.count > 1 {
+                Text("Each account keeps its own session, library and history. Playback stops when you switch.")
+            }
+        }
+
+        if self.environment.auth.state == .signedIn, self.accounts.count > 1 {
+            Section("Channel") {
                 ForEach(self.accounts) { account in
                     Button {
                         guard !account.isSelected else { return }
@@ -181,7 +236,6 @@ struct SettingsView: View {
                             self.isSwitching = true
                             await self.environment.switchAccount(to: account)
                             self.isSwitching = false
-                            await self.loadAccounts()
                         }
                     } label: {
                         HStack {
@@ -198,22 +252,26 @@ struct SettingsView: View {
                     .foregroundStyle(.primary)
                     .disabled(self.isSwitching)
                 }
-                if self.accounts.isEmpty {
-                    Label("Signed in", systemImage: "checkmark.seal.fill")
-                }
-                Button("Sign out", role: .destructive) {
+            }
+        }
+
+        if let active = registry.active {
+            Section {
+                Button(role: .destructive) {
                     Task {
+                        self.isSwitching = true
                         await self.environment.signOut()
-                        self.dismiss()
+                        self.isSwitching = false
+                        if self.environment.accounts.accounts.isEmpty { self.dismiss() }
+                    }
+                } label: {
+                    if let name = active.name {
+                        Text("Sign out of \(name)")
+                    } else {
+                        Text("Sign out")
                     }
                 }
-            case .signedOut:
-                Button("Sign in") {
-                    self.dismiss()
-                    self.environment.isLoginPresented = true
-                }
-            case .unknown:
-                ProgressView()
+                .disabled(self.isSwitching)
             }
         }
     }
@@ -224,5 +282,41 @@ struct SettingsView: View {
             return
         }
         self.accounts = (try? await self.environment.client.fetchAccountsList().accounts) ?? []
+    }
+}
+
+private struct AccountsLoadKey: Equatable {
+    let state: AuthState
+    let revision: Int
+}
+
+/// One Google account in the account list.
+private struct AccountRow: View {
+    let account: GoogleAccount
+    let isActive: Bool
+    let isExpired: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: self.account.avatarURL) { phase in
+                if case let .success(image) = phase {
+                    image.resizable().scaledToFill()
+                } else {
+                    Image(systemName: "person.crop.circle.fill").resizable().foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 32, height: 32)
+            .clipShape(Circle())
+            VStack(alignment: .leading) {
+                Text(self.account.name ?? String(localized: "Google account"))
+                if self.isExpired {
+                    Text("Signed out. Tap to sign in again.").font(.caption).foregroundStyle(.red)
+                } else if let detail = self.account.email ?? self.account.handle {
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            if self.isActive { Image(systemName: "checkmark") }
+        }
     }
 }

@@ -1,31 +1,29 @@
 <p align="center">
-  <img src="Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="140" alt="Kaset icon">
+  <img src="docs/icon/AppIcon-rounded.png" width="140" alt="Spool icon">
 </p>
 
-<h1 align="center">Kaset for iOS</h1>
+<h1 align="center">Spool</h1>
 
 <p align="center">
-  A native SwiftUI YouTube Music client for iPhone, built to keep playing with the screen locked.
+  A native SwiftUI YouTube Music client for iPhone, iPad and Mac.<br>
+  One codebase, two native layouts, background playback that keeps going.
 </p>
 
 ---
 
-Kaset for iOS is an unofficial, open-source YouTube Music client. The interface is fully native
-(SwiftUI, Liquid Glass, iOS 26), while playback is delegated to the real YouTube Music web
-player running in a hidden web view. That gives you background playback, lock-screen and
-AirPods controls, and an Apple Music-like interface, with your own YouTube Music account.
-
-It is **inspired by, and adapted from, [Kaset for macOS](https://github.com/sozercan/kaset)**
-by [@sozercan](https://github.com/sozercan): the InnerTube client, response parsers, models,
-playback-bridge scripts and the app icon come from there. This project exists because the
-macOS app's player stack could not be shared with iOS as is, so the pieces that matter were
-carried over and the player was rebuilt for iOS.
+Spool is an unofficial, open-source YouTube Music client for **iPhone, iPad and Mac**, built from
+a single SwiftUI codebase. The interface is fully native (Liquid Glass, iOS 26 / macOS 26), while
+playback is delegated to the real YouTube Music web player running in a hidden web view. That
+gives you background playback, lock-screen and AirPods controls, and an Apple Music-like
+interface, with your own YouTube Music account.
 
 > **Disclaimer** – Not affiliated with, endorsed by, or sponsored by YouTube or Google. It uses
 > undocumented endpoints that can change at any time. Use it with your own account and at your
 > own risk.
 
 ## Screenshots
+
+### iPhone &amp; iPad
 
 <table>
   <tr>
@@ -40,7 +38,28 @@ carried over and the player was rebuilt for iOS.
   </tr>
 </table>
 
+### Mac
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/mac-home.png" alt="macOS Home" width="420"></td>
+    <td align="center"><img src="docs/screenshots/mac-playlist.png" alt="macOS Playlist" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Home</b><br>Sidebar, shelves and player bar (guest mode)</sub></td>
+    <td align="center"><sub><b>Playlist</b><br>Playlist page with Play and Shuffle</sub></td>
+  </tr>
+</table>
+
+## Download
+
+The macOS app (macOS 26, Apple silicon and Intel) is built automatically on every change to `main`: grab the latest DMG from [Releases](https://github.com/emoonadev/Spool/releases/latest), open it and drag Spool to Applications.
+
+The app is not notarized, so on first launch right-click Spool and choose **Open** (or go to System Settings → Privacy &amp; Security → **Open Anyway**), or run `xattr -dr com.apple.quarantine /Applications/Spool.app`.
+
 ## Features
+
+### iPhone &amp; iPad
 
 - **Home, Discover, Collections, Search** tabs in the Apple Music layout, with the mini player as the
   tab bar accessory (full pill, compact inline when the bar minimizes).
@@ -59,6 +78,16 @@ carried over and the player was rebuilt for iOS.
   Apple Intelligence iPhones.
 - **Settings:** audio quality, content language, haptics, optional ad skipping (off by default).
 - **Localized** in English and French.
+
+### Mac
+
+The `KasetMac` target shares the InnerTube client, playback engine and feature screens with
+iOS, with a desktop layout:
+
+- Sidebar navigation (Search, Home, Discover, Collection, your playlists) and account switcher.
+- Player bar at the bottom of the content, with like, AirPlay, shuffle, repeat and volume.
+- Lyrics and queue in a panel on the right.
+- Paging arrows on horizontal shelves, keyboard and trackpad friendly.
 
 ## How it works
 
@@ -82,6 +111,7 @@ Sources/
   Core/       InnerTube client, models, parsers (adapted from Kaset macOS)
   Playback/   WebPlayer, page scripts, state, Now Playing, audio session
   Features/   Home, Discover, Collections, Search, Detail, Now Playing, Settings, Shell
+  Mac/        macOS shell: main window, sidebar, player bar, side panel
   Debug/      log and diagnostic screens
 Tests/        parsers (sanitized fixtures), auth, playback state
 docs/         screenshots, spike findings
@@ -92,20 +122,27 @@ approach (background playback, keep-alive, lock-screen controls).
 
 ## Requirements
 
-- Xcode 26 and an iOS 26 device (iPhone first)
+- Xcode 26
+- An iOS 26 device (iPhone or iPad), and/or a Mac running macOS 26
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
 - A YouTube Music account (Premium is not required)
 
 ## Build and run
 
 ```bash
-git clone https://github.com/emoonadev/Kaset-iOS.git
-cd Kaset-iOS
+git clone https://github.com/emoonadev/Spool.git
+cd Spool
 xcodegen generate
 open KasetiOS.xcodeproj
 ```
 
-Select your team under **Signing & Capabilities**, choose your iPhone, and run.
+- **iOS:** choose the `KasetiOS` scheme, select your team under **Signing & Capabilities**,
+  pick your iPhone, and run.
+- **macOS:** choose the `KasetMac` scheme and run on *My Mac*. It is ad-hoc signed, so no team
+  is needed.
+
+Run `xcodegen generate` again whenever files are added or removed (for example after a pull);
+the Xcode project is generated and not committed.
 
 ### Sideloading with a free Apple ID
 
@@ -144,6 +181,10 @@ See the [roadmap](ROADMAP.md) for what is planned next.
 Issues and pull requests are welcome. A few ground rules: verify an endpoint against the real
 service (or Kaset's `api-explorer`) before writing a parser, keep the web view as the source of
 truth for playback, and never put cookies, tokens or personal responses in code, logs or fixtures.
+
+Read [`AGENTS.md`](AGENTS.md) before opening a pull request (`CLAUDE.md` points to the same
+file): every feature ships on both iOS and macOS unless explicitly scoped to one platform, every
+PR bumps the minor or major version in `project.yml`, and everything is written in English.
 
 ## Acknowledgements
 

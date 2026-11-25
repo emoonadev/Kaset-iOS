@@ -4,3 +4,4 @@ build/
 DerivedData/
 .DS_Store
 xcuserdata/
+Mac/Info.plist

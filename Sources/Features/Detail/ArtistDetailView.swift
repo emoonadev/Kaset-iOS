@@ -65,7 +65,7 @@ struct ArtistDetailView: View {
             }
         }
         .navigationTitle(self.model?.detail?.artist.name ?? self.fallbackName)
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
         .toolbar { self.artistToolbar }
         .task {
             if self.model == nil { self.model = ArtistDetailModel(id: self.id, client: self.environment.client) }
@@ -84,7 +84,11 @@ struct ArtistDetailView: View {
             if let detail = model.detail {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 32) {
-                        self.header(detail, model: model)
+                        if Platform.isMac {
+                            self.macHeader(detail, model: model)
+                        } else {
+                            self.header(detail, model: model)
+                        }
                         self.topSongs(detail)
                         if detail.orderedSections.isEmpty {
                             // Same fallback as kaset: when the page has no ordered sections the
@@ -153,13 +157,57 @@ struct ArtistDetailView: View {
         .padding(.horizontal, 20)
     }
 
+    /// macOS: round portrait on the left, the name big next to it, actions underneath.
+    private func macHeader(_ detail: ArtistDetail, model: ArtistDetailModel) -> some View {
+        HStack(alignment: .center, spacing: 28) {
+            ArtworkView(url: detail.thumbnailURL ?? detail.artist.thumbnailURL)
+                .frame(width: 190, height: 190)
+                .clipShape(Circle())
+                .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(detail.artist.name)
+                    .font(.system(size: 34, weight: .bold))
+                    .lineLimit(2)
+                Text([detail.profileKind == .profile ? "Profile" : "Artist", detail.monthlyAudience]
+                    .compactMap { $0 }.joined(separator: " · "))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    if detail.profileKind == .artist,
+                       let seed = detail.mixPlaylistId ?? detail.songs.first.map({ "RDAMVM\($0.videoId)" })
+                    {
+                        Button {
+                            self.environment.player.playShuffled(videoId: nil, playlistId: seed)
+                        } label: {
+                            Label("Shuffle", systemImage: "shuffle")
+                        }
+                        .buttonStyle(PrimaryActionButtonStyle())
+                    }
+                    if let mix = detail.mixPlaylistId {
+                        Button {
+                            self.environment.player.play(videoId: detail.mixVideoId, playlistId: mix)
+                        } label: {
+                            Label("Mix", systemImage: "play.circle")
+                        }
+                        .buttonStyle(SecondaryActionButtonStyle())
+                    }
+                }
+                .frame(maxWidth: 300)
+                .padding(.top, 6)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+        .padding(.top, 8)
+    }
+
     /// Follow lives in the navigation bar.
     @ToolbarContentBuilder
     private var artistToolbar: some ToolbarContent {
         if let model = self.model, let detail = model.detail,
            detail.channelId != nil, self.environment.auth.state == .signedIn
         {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .trailingBar) {
                 Button {
                     Task { await model.toggleSubscription() }
                 } label: {
@@ -190,13 +238,19 @@ struct ArtistDetailView: View {
                         .font(.subheadline)
                     }
                 }
-                .padding(.horizontal, 20)
-                ForEach(detail.songs.prefix(5)) { song in
-                    TrackRow(song: song) {
-                        self.environment.player.play(videoId: song.videoId, playlistId: "RDAMVM\(song.videoId)")
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
+                // Two columns on the Mac window, one on the phone.
+                LazyVGrid(
+                    columns: Array(repeating: GridItem(.flexible(), spacing: 24, alignment: .top), count: Platform.isMac ? 2 : 1),
+                    spacing: Platform.isMac ? 2 : 4
+                ) {
+                    ForEach(detail.songs.prefix(Platform.isMac ? 6 : 5)) { song in
+                        TrackRow(song: song) {
+                            self.environment.player.play(videoId: song.videoId, playlistId: "RDAMVM\(song.videoId)")
+                        }
                     }
-                    .padding(.horizontal, 20)
                 }
+                .padding(.horizontal, AdaptiveLayout.horizontalPadding)
             }
         }
     }
@@ -215,7 +269,8 @@ struct ArtistDetailView: View {
                 }
                 .font(.subheadline.weight(.semibold))
             }
-            .padding(.horizontal, 20)
+            .frame(maxWidth: Platform.isMac ? 760 : .infinity, alignment: .leading)
+            .padding(.horizontal, AdaptiveLayout.horizontalPadding)
         }
     }
 
@@ -260,7 +315,7 @@ struct ArtistSongsView: View {
             }
         }
         .navigationTitle(self.title)
-        .navigationBarTitleDisplayMode(.inline)
+        .inlineNavigationTitle()
         .task { await self.load() }
     }
 

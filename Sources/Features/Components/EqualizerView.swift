@@ -1,29 +1,26 @@
 import SwiftUI
-import UIKit
 
 /// Animated "now playing" bars, like kaset's `EqualizerView`.
 ///
 /// The bars are Core Animation layers with repeating animations, so the render server draws
 /// every frame; a SwiftUI `repeatForever` animation would re-render the whole list row view
 /// tree on every display refresh while the playing row is on screen.
-struct EqualizerView: UIViewRepresentable {
+struct EqualizerView {
     var isAnimating: Bool
     var barCount = 4
     var spacing: CGFloat = 2
     var barWidth: CGFloat = 3
     var color: Color = .brand
 
-    func makeUIView(context _: Context) -> EqualizerBarsView { EqualizerBarsView() }
-
-    func updateUIView(_ view: EqualizerBarsView, context: Context) {
+    fileprivate func update(_ view: EqualizerBarsView, environment: EnvironmentValues) {
         view.configure(
-            isAnimating: self.isAnimating && !context.environment.accessibilityReduceMotion,
+            isAnimating: self.isAnimating && !environment.accessibilityReduceMotion,
             barCount: self.barCount, spacing: self.spacing, barWidth: self.barWidth,
-            color: UIColor(self.color)
+            color: PlatformColor(self.color)
         )
     }
 
-    func sizeThatFits(_ proposal: ProposedViewSize, uiView _: EqualizerBarsView, context _: Context) -> CGSize? {
+    fileprivate func size(for proposal: ProposedViewSize) -> CGSize {
         let count = CGFloat(self.barCount)
         return CGSize(
             width: count * self.barWidth + max(count - 1, 0) * self.spacing,
@@ -32,7 +29,59 @@ struct EqualizerView: UIViewRepresentable {
     }
 }
 
-final class EqualizerBarsView: UIView {
+#if os(iOS)
+extension EqualizerView: UIViewRepresentable {
+    func makeUIView(context _: Context) -> EqualizerBarsView { EqualizerBarsView() }
+
+    func updateUIView(_ view: EqualizerBarsView, context: Context) {
+        self.update(view, environment: context.environment)
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView _: EqualizerBarsView, context _: Context) -> CGSize? {
+        self.size(for: proposal)
+    }
+}
+#else
+extension EqualizerView: NSViewRepresentable {
+    func makeNSView(context _: Context) -> EqualizerBarsView { EqualizerBarsView() }
+
+    func updateNSView(_ view: EqualizerBarsView, context: Context) {
+        self.update(view, environment: context.environment)
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView _: EqualizerBarsView, context _: Context) -> CGSize? {
+        self.size(for: proposal)
+    }
+}
+#endif
+
+final class EqualizerBarsView: PlatformView {
+    #if os(macOS)
+    /// Top-left origin like UIKit, so the bar geometry below is shared.
+    override var isFlipped: Bool { true }
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        self.wantsLayer = true
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) { fatalError() }
+
+    override func layout() {
+        super.layout()
+        self.layoutBars()
+    }
+
+    private func setNeedsLayout() { self.needsLayout = true }
+    private func layoutIfNeeded() { self.layoutSubtreeIfNeeded() }
+    #else
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.layoutBars()
+    }
+    #endif
+
     private var bars: [CALayer] = []
     private var isAnimating = false
     private var barCount = 0
@@ -44,13 +93,13 @@ final class EqualizerBarsView: UIView {
         (0.42, 0.18, 0.95), (0.55, 0.30, 0.80), (0.36, 0.15, 1.0), (0.62, 0.25, 0.75),
     ]
 
-    func configure(isAnimating: Bool, barCount: Int, spacing: CGFloat, barWidth: CGFloat, color: UIColor) {
+    fileprivate func configure(isAnimating: Bool, barCount: Int, spacing: CGFloat, barWidth: CGFloat, color: PlatformColor) {
         if barCount != self.barCount {
             self.bars.forEach { $0.removeFromSuperlayer() }
             self.bars = (0 ..< barCount).map { _ in
                 let layer = CALayer()
                 layer.cornerRadius = barWidth / 2
-                self.layer.addSublayer(layer)
+                self.hostLayer?.addSublayer(layer)
                 return layer
             }
             self.barCount = barCount
@@ -67,8 +116,9 @@ final class EqualizerBarsView: UIView {
         self.applyAnimation()
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
+    private var hostLayer: CALayer? { self.layer }
+
+    private func layoutBars() {
         let height = self.bounds.height
         for (index, bar) in self.bars.enumerated() {
             let x = CGFloat(index) * (self.barWidth + self.spacing)

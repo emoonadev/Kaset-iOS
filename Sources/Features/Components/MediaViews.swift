@@ -12,7 +12,7 @@ struct MediaCard: View {
 
     let entity: MediaEntity
     /// `nil` fills the proposed width (grids).
-    var width: CGFloat? = 156
+    var width: CGFloat? = AdaptiveLayout.cardWidth
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
