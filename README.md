@@ -17,14 +17,6 @@ playback is delegated to the real YouTube Music web player running in a hidden w
 gives you background playback, lock-screen and AirPods controls, and an Apple Music-like
 interface, with your own YouTube Music account.
 
-Spool was previously called *Kaset for iOS*. It is **inspired by, and adapted from,
-[Kaset for macOS](https://github.com/sozercan/kaset)**
-by [@sozercan](https://github.com/sozercan): the InnerTube client, response parsers, models,
-playback-bridge scripts and the app icon come from there. This project exists because the
-macOS app's player stack could not be shared with iOS as is, so the pieces that matter were
-carried over and the player was rebuilt for iOS. The Mac app now runs on that same shared stack,
-with its own desktop layout.
-
 > **Disclaimer** – Not affiliated with, endorsed by, or sponsored by YouTube or Google. It uses
 > undocumented endpoints that can change at any time. Use it with your own account and at your
 > own risk.
@@ -54,8 +46,8 @@ with its own desktop layout.
     <td align="center"><img src="docs/screenshots/mac-playlist.png" alt="macOS Playlist" width="420"></td>
   </tr>
   <tr>
-    <td align="center"><sub><b>Home</b><br>Sidebar, shelves and player bar</sub></td>
-    <td align="center"><sub><b>Mix</b><br>Playlist page with Play, Shuffle and Regenerate</sub></td>
+    <td align="center"><sub><b>Home</b><br>Sidebar, shelves and player bar (guest mode)</sub></td>
+    <td align="center"><sub><b>Playlist</b><br>Playlist page with Play and Shuffle</sub></td>
   </tr>
 </table>
 
