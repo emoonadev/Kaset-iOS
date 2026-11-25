@@ -51,6 +51,12 @@ interface, with your own YouTube Music account.
   </tr>
 </table>
 
+## Download
+
+The macOS app (macOS 26, Apple silicon and Intel) is built automatically on every change to `main`: grab the latest DMG from [Releases](https://github.com/emoonadev/Spool/releases/latest), open it and drag Spool to Applications.
+
+The app is not notarized, so on first launch right-click Spool and choose **Open** (or go to System Settings → Privacy &amp; Security → **Open Anyway**), or run `xattr -dr com.apple.quarantine /Applications/Spool.app`.
+
 ## Features
 
 ### iPhone &amp; iPad

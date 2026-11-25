@@ -69,6 +69,9 @@ targets:
       properties:
         CFBundleDisplayName: Spool
         CFBundleName: Spool
+        # Read from build settings so the release workflow can stamp the version.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleLocalizations: [en, fr]
         CFBundleDevelopmentRegion: en
         LSApplicationCategoryType: public.app-category.music
