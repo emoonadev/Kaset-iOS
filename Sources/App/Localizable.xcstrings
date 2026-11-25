@@ -333,6 +333,16 @@
         }
       }
     },
+    "Allow notifications in System Settings" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autoriser les notifications dans Réglages Système"
+          }
+        }
+      }
+    },
     "Behavior" : {
       "localizations" : {
         "fr" : {
@@ -363,6 +373,16 @@
         }
       }
     },
+    "Notifications are turned off for Spool in System Settings." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les notifications de Spool sont désactivées dans Réglages Système."
+          }
+        }
+      }
+    },
     "Save data on music videos" : {
       "localizations" : {
         "fr" : {
@@ -379,6 +399,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les clips sont lus dans leur version titre quand YouTube Music en propose une (Premium), qui peut différer un peu du clip ; les autres vidéos sont chargées à la qualité la plus basse. L'app n'affiche jamais la vidéo : seules les données sont économisées."
+          }
+        }
+      }
+    },
+    "Shows a notification with the title and artist each time the song changes, when you skip or when the next one starts." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche une notification avec le titre et l'artiste à chaque changement de morceau, quand vous passez au suivant ou quand le suivant démarre."
           }
         }
       }
@@ -1454,6 +1484,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rien n'a encore été écouté."
+          }
+        }
+      }
+    },
+    "Notify on song change" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Me prévenir à chaque changement de morceau"
           }
         }
       }

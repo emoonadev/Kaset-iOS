@@ -90,7 +90,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     func applicationDidFinishLaunching(_: Notification) {
-        MainActor.assumeIsolated { SpaceBarMonitor.install() }
+        MainActor.assumeIsolated {
+            SpaceBarMonitor.install()
+            Task { await AppEnvironment.shared.trackNotifier.prepare() }
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool { false }
@@ -113,6 +116,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         withCompletionHandler completionHandler: @escaping @Sendable () -> Void
     ) {
         let info = response.notification.request.content.userInfo
+        if info[TrackChangeNotifier.kindKey] as? String == TrackChangeNotifier.kindValue {
+            Task { @MainActor in
+                TrackChangeNotifier.showMainWindow()
+                completionHandler()
+            }
+            return
+        }
         let albumId = info[NotificationRouter.albumIdKey] as? String
         let title = info[NotificationRouter.albumTitleKey] as? String
         let videoId = info[NotificationRouter.videoIdKey] as? String
@@ -122,6 +132,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
     }
 
+    /// Shown even while Spool is in front: a song change is announced on every switch.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
