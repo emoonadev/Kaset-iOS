@@ -88,6 +88,8 @@ iOS, with a desktop layout:
 - Player bar at the bottom of the content, with like, AirPlay, shuffle, repeat and volume.
 - Lyrics and queue in a panel on the right.
 - Paging arrows on horizontal shelves, keyboard and trackpad friendly.
+- Song change notifications: a banner with the title, artist and artwork each time the song
+  changes, skipped or played through (on by default, Settings → Playback).
 
 ## How it works
 

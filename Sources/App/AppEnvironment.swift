@@ -17,6 +17,9 @@ final class AppEnvironment {
     let mixes = ArtistMixLibrary()
     let newReleases = NewReleaseWatcher()
     let listening = ListeningHistory()
+    #if os(macOS)
+    @ObservationIgnored let trackNotifier = TrackChangeNotifier()
+    #endif
     private let accountSwitcher = AccountSwitcher()
     @ObservationIgnored private var restoreTask: Task<Void, Never>?
 
@@ -97,7 +100,15 @@ final class AppEnvironment {
         self.player = WebPlayer(dataStore: { accounts.activeDataStore })
         self.client.brandIdProvider = { accounts.active?.brandId }
         let listening = self.listening
+        #if os(macOS)
+        let trackNotifier = self.trackNotifier
+        self.player.onStateChange = { state, date in
+            listening.playbackChanged(state, at: date)
+            trackNotifier.playbackChanged(state)
+        }
+        #else
         self.player.onStateChange = { state, date in listening.playbackChanged(state, at: date) }
+        #endif
     }
 
     /// Plays an entity without opening its page. Playlists use their id as the queue; an album's

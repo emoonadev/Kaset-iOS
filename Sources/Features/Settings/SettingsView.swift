@@ -13,6 +13,9 @@ struct SettingsView: View {
     @AppStorage(BufferPolicy.adaptiveQualityStorageKey) private var adaptiveQuality = true
     @AppStorage(BufferPolicy.extendedStorageKey) private var extendedBuffer = false
     @AppStorage(NewReleaseWatcher.notificationsStorageKey) private var newReleaseNotifications = true
+    #if os(macOS)
+    @AppStorage(TrackChangeNotifier.storageKey) private var trackChangeNotifications = true
+    #endif
 
     @State private var accounts: [UserAccount] = []
     @State private var isSwitching = false
@@ -38,6 +41,10 @@ struct SettingsView: View {
                     Text("Skipping ads is an opt-in and may go against YouTube's terms of service.")
                 }
                 .onChange(of: self.adAutoSkip) { _, _ in self.environment.player.applyAdSkipSetting() }
+
+                #if os(macOS)
+                self.trackNotificationsSection
+                #endif
 
                 Section {
                     Toggle("Save data on music videos", isOn: self.$dataSaver)
@@ -100,6 +107,32 @@ struct SettingsView: View {
             }
         }
     }
+
+    #if os(macOS)
+    private var trackNotificationsSection: some View {
+        let notifier = self.environment.trackNotifier
+        return Section {
+            Toggle("Notify on song change", isOn: self.$trackChangeNotifications)
+                .onChange(of: self.trackChangeNotifications) { _, isOn in
+                    guard isOn else { return }
+                    Task {
+                        if await !notifier.requestPermission() { self.trackChangeNotifications = false }
+                    }
+                }
+            if self.trackChangeNotifications, notifier.authorization == .denied {
+                Button("Allow notifications in System Settings") { TrackChangeNotifier.openSystemSettings() }
+            }
+        } footer: {
+            if self.trackChangeNotifications, notifier.authorization == .denied {
+                Text("Notifications are turned off for Spool in System Settings.")
+                    .foregroundStyle(.red)
+            } else {
+                Text("Shows a notification with the title and artist each time the song changes, when you skip or when the next one starts.")
+            }
+        }
+        .task { await notifier.refreshAuthorization() }
+    }
+    #endif
 
     private var newReleasesSection: some View {
         let watcher = self.environment.newReleases

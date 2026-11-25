@@ -43,7 +43,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.emoona.kaset
         PRODUCT_NAME: KasetiOS
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        MARKETING_VERSION: "1.1"
+        MARKETING_VERSION: "1.2"
         CURRENT_PROJECT_VERSION: "1"
   # macOS app: same sources, with the original Kaset (macOS) layout — sidebar, player bar at the
   # bottom of the content, lyrics / queue panel on the right. Shell code lives in Sources/Mac.
@@ -82,7 +82,7 @@ targets:
         PRODUCT_NAME: Spool
         # Icon Composer icon: the iOS AppIcon artwork as two glass layers (docs/icon/make.py).
         ASSETCATALOG_COMPILER_APPICON_NAME: KasetMacIcon
-        MARKETING_VERSION: "1.1"
+        MARKETING_VERSION: "1.2"
         CURRENT_PROJECT_VERSION: "1"
         ENABLE_HARDENED_RUNTIME: NO
         CODE_SIGN_IDENTITY: "-"
