@@ -10,7 +10,7 @@ codebase with XcodeGen. See [`README.md`](README.md) for the architecture and
 
 ## Hard rules
 
-Every pull request must follow these three rules. A PR that breaks one is not ready to merge.
+Every pull request must follow these four rules. A PR that breaks one is not ready to merge.
 
 ### 1. Every feature ships on iOS and macOS
 
@@ -53,13 +53,13 @@ The version lives in `project.yml` as `MARKETING_VERSION` and follows
     fixes, refactors, performance work, localization, documentation and tooling.
   - When major, reset minor to zero (`1.4` → `2.0`).
 - **Never set the patch number.** `MARKETING_VERSION` holds `MAJOR.MINOR` only. The release
-  workflow (`.github/workflows/release.yml`) computes the patch on every push to `main` from the
+  workflow (`.github/workflows/release.yml`) computes the patch on every update of `main` from the
   existing `vMAJOR.MINOR.N` tags, starting at `.0` after a bump.
 - **Bump both app targets together**: `KasetiOS` and `KasetMac` must always have the same
   `MARKETING_VERSION`. Leave `CURRENT_PROJECT_VERSION` alone; the release workflow stamps the
   build number.
-- Bump once per PR, relative to `main`. If `main` moved while the PR was open, rebase and make
-  sure the PR still bumps one step above the version on `main`.
+- Bump once per PR, relative to `develop`. If `develop` moved while the PR was open, rebase and
+  make sure the PR still bumps one step above the version on `develop`.
 - State the bump and the reason in the PR description, for example `Version: 1.4 → 1.5 (new
   feature: artist mixes)`.
 
@@ -70,9 +70,21 @@ documentation and these instructions are written in English. User-facing strings
 exception: they are localized through `Localizable.xcstrings` (English is the source language,
 French is the translation).
 
+### 4. Every PR targets `develop`
+
+All work lands on `develop` first; `main` is the release branch and never receives a PR.
+
+- Branch from `develop` and open the PR against `develop` (it is the default branch, so
+  `gh pr create` and the GitHub UI pick it automatically). Never open a PR against `main`.
+- `develop` is protected: no direct pushes, no force pushes, and CI must pass. It only changes
+  through a PR merged by the maintainer. Agents open PRs but never merge them.
+- Once a day, the *Merge develop into main* workflow (`.github/workflows/sync-main.yml`)
+  fast-forwards `main` to `develop` when `develop`'s CI is green, then triggers the release.
+  Never push or merge into `main` by hand.
+
 ## Workflow
 
-1. Branch from `main` with a descriptive prefix: `feat/`, `fix/`, `refactor/`, `perf/`,
+1. Branch from `develop` with a descriptive prefix: `feat/`, `fix/`, `refactor/`, `perf/`,
    `docs/`, `ci/`, `chore/` (for example `feat/sleep-timer`).
 2. Make the change on both platforms (rule 1) and bump the version (rule 2).
 3. Run `xcodegen generate` after adding, removing or moving files. The Xcode project is
@@ -80,7 +92,8 @@ French is the translation).
 4. Build both targets and run the tests (see below) before opening the PR.
 5. Update `README.md` (features, limitations) and `ROADMAP.md` (move items to *Shipped*) when
    the change affects them.
-6. Open a PR against `main`. Keep it focused on one topic.
+6. Open a PR against `develop` (rule 4). Keep it focused on one topic. The maintainer reviews
+   and merges it; the daily job ships it to `main`.
 
 ### Build and test
 
@@ -100,7 +113,8 @@ xcodebuild build \
   CODE_SIGNING_ALLOWED=NO
 ```
 
-CI (`.github/workflows/ci.yml`) runs the same two jobs on every PR. Both must pass.
+CI (`.github/workflows/ci.yml`) runs the same two jobs on every PR and on every push to
+`develop` and `main`. Both must pass.
 
 ### Commits
 
