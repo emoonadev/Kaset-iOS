@@ -236,6 +236,17 @@
         }
       }
     },
+    "Add to Mix" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter au mix"
+          }
+        }
+      }
+    },
     "Add to Playlist" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -343,76 +354,6 @@
         }
       }
     },
-    "Behavior" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comportement"
-          }
-        }
-      }
-    },
-    "Debug tools and diagnostics. You don't need these for everyday use." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Outils de débogage et de diagnostic. Inutiles au quotidien."
-          }
-        }
-      }
-    },
-    "Developer" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Développeur"
-          }
-        }
-      }
-    },
-    "Notifications are turned off for Spool in System Settings." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les notifications de Spool sont désactivées dans Réglages Système."
-          }
-        }
-      }
-    },
-    "Save data on music videos" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Économiser des données sur les clips"
-          }
-        }
-      }
-    },
-    "Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les clips sont lus dans leur version titre quand YouTube Music en propose une (Premium), qui peut différer un peu du clip ; les autres vidéos sont chargées à la qualité la plus basse. L'app n'affiche jamais la vidéo : seules les données sont économisées."
-          }
-        }
-      }
-    },
-    "Shows a notification with the title and artist each time the song changes, when you skip or when the next one starts." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Affiche une notification avec le titre et l'artiste à chaque changement de morceau, quand vous passez au suivant ou quand le suivant démarre."
-          }
-        }
-      }
-    },
     "and %lld more" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -488,6 +429,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mauvais réseau"
+          }
+        }
+      }
+    },
+    "Behavior" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comportement"
           }
         }
       }
@@ -667,6 +618,16 @@
         }
       }
     },
+    "Debug tools and diagnostics. You don't need these for everyday use." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outils de débogage et de diagnostic. Inutiles au quotidien."
+          }
+        }
+      }
+    },
     "Delete Mix" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -674,6 +635,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Supprimer le mix"
+          }
+        }
+      }
+    },
+    "Delete Mix…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer le mix…"
           }
         }
       }
@@ -717,6 +689,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Dernier message de la page : %1$@\n%2$@"
+          }
+        }
+      }
+    },
+    "Developer" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Développeur"
           }
         }
       }
@@ -817,6 +799,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Les fans aiment aussi"
+          }
+        }
+      }
+    },
+    "Find Artists" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouver des artistes"
           }
         }
       }
@@ -993,6 +986,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moins"
+          }
+        }
+      }
+    },
+    "Lesser-known songs by these artists" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titres moins connus de ces artistes"
           }
         }
       }
@@ -1215,6 +1218,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Musique"
+          }
+        }
+      }
+    },
+    "Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les clips sont lus dans leur version titre quand YouTube Music en propose une (Premium), qui peut différer un peu du clip ; les autres vidéos sont chargées à la qualité la plus basse. L'app n'affiche jamais la vidéo : seules les données sont économisées."
           }
         }
       }
@@ -1488,12 +1501,12 @@
         }
       }
     },
-    "Notify on song change" : {
+    "Notifications are turned off for Spool in System Settings." : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Me prévenir à chaque changement de morceau"
+            "value" : "Les notifications de Spool sont désactivées dans Réglages Système."
           }
         }
       }
@@ -1505,6 +1518,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Me prévenir à 8 h"
+          }
+        }
+      }
+    },
+    "Notify on song change" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Me prévenir à chaque changement de morceau"
           }
         }
       }
@@ -1581,6 +1604,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Période"
+          }
+        }
+      }
+    },
+    "Pick artists on the right, then set the options. The mix is saved as a private playlist in your YouTube Music account." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez des artistes à droite, puis réglez les options. Le mix est enregistré comme playlist privée dans votre compte YouTube Music."
           }
         }
       }
@@ -1881,6 +1914,16 @@
         }
       }
     },
+    "Remove %@ from the mix" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer %@ du mix"
+          }
+        }
+      }
+    },
     "Remove from Library" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1888,6 +1931,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retirer de la bibliothèque"
+          }
+        }
+      }
+    },
+    "Remove from Mix" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retirer du mix"
           }
         }
       }
@@ -1950,6 +2004,16 @@
         }
       }
     },
+    "Save" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer"
+          }
+        }
+      }
+    },
     "Save and Play" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1957,6 +2021,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enregistrer et lire"
+          }
+        }
+      }
+    },
+    "Save data on music videos" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Économiser des données sur les clips"
           }
         }
       }
@@ -2001,6 +2075,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rechercher des artistes"
+          }
+        }
+      }
+    },
+    "Search for the artists you want in this mix." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherchez les artistes que vous voulez dans ce mix."
           }
         }
       }
@@ -2066,6 +2150,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher moins"
+          }
+        }
+      }
+    },
+    "Shows a notification with the title and artist each time the song changes, when you skip or when the next one starts." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche une notification avec le titre et l'artiste à chaque changement de morceau, quand vous passez au suivant ou quand le suivant démarre."
           }
         }
       }
