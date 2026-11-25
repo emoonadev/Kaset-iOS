@@ -23,6 +23,10 @@ struct PlaybackState: Equatable, Sendable {
     var artist: String?
     var album: String?
     var artworkURL: URL?
+    /// `false` while the page has switched video but its Media Session still describes the
+    /// previous track: `title` and `artist` then come from the player, `album` and `artworkURL`
+    /// are empty, and the full details follow in a later report.
+    var isMetadataCurrent = true
 
     /// `true` while the media element is playing (not paused, not ended).
     var isPlaying = false
@@ -97,6 +101,7 @@ struct PlaybackState: Equatable, Sendable {
         if message.keys.contains("artwork") {
             next.artworkURL = Self.string(message["artwork"]).flatMap(URL.init(string:))
         }
+        if let fresh = message["metaFresh"] as? Bool { next.isMetadataCurrent = fresh }
         if message.keys.contains("buf") {
             next.bufferedAhead = Self.number(message["buf"])
         }

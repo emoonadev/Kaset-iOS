@@ -7,8 +7,9 @@ import UserNotifications
 /// the queue moved on by itself. macOS only: on iOS the lock screen already shows the track.
 ///
 /// Driven by the mirrored `PlaybackState`. The page reports a new `videoId` a little before its
-/// title and artwork settle, so a track is announced after a short pause, with the latest state,
-/// and only once per track. Rapid skips collapse into one notification for the song that stays.
+/// Media Session details (artist, album, artwork) settle, so a track is announced after a short
+/// pause, once `isMetadataCurrent` says the details belong to it, and only once per track. Rapid
+/// skips collapse into one notification for the song that stays.
 @MainActor
 @Observable
 final class TrackChangeNotifier {
@@ -18,8 +19,12 @@ final class TrackChangeNotifier {
     /// `userInfo` marker, so a click only brings the window forward (no navigation, no replay).
     nonisolated static let kindKey = "kind"
     nonisolated static let kindValue = "nowPlaying"
-    /// Time for the page to report the new track's title, artist and artwork.
+    /// Pause after a track change, so rapid skips produce one notification.
     private static let settleDelay: Duration = .milliseconds(900)
+    /// Longest wait for the track's own details. Past it, the notification uses what the player
+    /// reported for that video (correct title, maybe no artwork) rather than nothing.
+    private static let metadataTimeout: Duration = .seconds(4)
+    private static let metadataPollInterval: Duration = .milliseconds(150)
 
     /// On unless turned off in Settings.
     static var isEnabled: Bool {
@@ -99,6 +104,12 @@ final class TrackChangeNotifier {
         self.postTask?.cancel()
         self.postTask = Task { [weak self] in
             try? await Task.sleep(for: Self.settleDelay)
+            let deadline = ContinuousClock.now + Self.metadataTimeout - Self.settleDelay
+            while !Task.isCancelled, ContinuousClock.now < deadline,
+                  self?.pending?.isMetadataCurrent == false
+            {
+                try? await Task.sleep(for: Self.metadataPollInterval)
+            }
             guard !Task.isCancelled else { return }
             await self?.announcePending()
         }
@@ -107,6 +118,9 @@ final class TrackChangeNotifier {
     private func announcePending() async {
         guard let state = self.pending, let videoId = state.videoId else { return }
         self.pending = nil
+        if !state.isMetadataCurrent {
+            self.log.log("notify", "\(videoId): track details still settling, using the player's")
+        }
         guard let title = state.title, !title.isEmpty else {
             self.log.log("notify", "skipped \(videoId): no title yet")
             return
