@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="140" alt="Spool icon">
+  <img src="docs/icon/AppIcon-rounded.png" width="140" alt="Spool icon">
 </p>
 
 <h1 align="center">Spool</h1>
