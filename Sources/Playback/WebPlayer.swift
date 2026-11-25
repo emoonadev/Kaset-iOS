@@ -975,7 +975,33 @@ final class WebPlayer: NSObject {
         center.previousTrackCommand.isEnabled = true
         center.skipForwardCommand.isEnabled = false
         center.skipBackwardCommand.isEnabled = false
+        #if os(macOS)
+        // On macOS the app publishing Now Playing info receives the media keys (keyboard ⏯,
+        // headphone buttons), and WebKit does not handle play/pause for it as it does on iOS.
+        center.togglePlayPauseCommand.addTarget { [weak self] _ in
+            self?.remoteAction("toggle") { $0.togglePlayPause() } ?? .commandFailed
+        }
+        center.playCommand.addTarget { [weak self] _ in
+            self?.remoteAction("play") { $0.resume() } ?? .commandFailed
+        }
+        center.pauseCommand.addTarget { [weak self] _ in
+            self?.remoteAction("pause") { $0.pause() } ?? .commandFailed
+        }
+        center.togglePlayPauseCommand.isEnabled = true
+        center.playCommand.isEnabled = true
+        center.pauseCommand.isEnabled = true
+        #endif
     }
+
+    #if os(macOS)
+    private func remoteAction(_ name: String, _ action: (WebPlayer) -> Void) -> MPRemoteCommandHandlerStatus {
+        guard Date().timeIntervalSince(self.lastRemoteCommand) > 0.3 else { return .success }
+        self.lastRemoteCommand = Date()
+        self.log.log("remote", "media key \(name)")
+        action(self)
+        return .success
+    }
+    #endif
 
     private func remote(_ command: String) -> MPRemoteCommandHandlerStatus {
         // Guard against WebKit also forwarding the same press.
