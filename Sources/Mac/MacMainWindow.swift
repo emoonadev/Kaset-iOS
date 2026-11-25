@@ -48,6 +48,9 @@ private struct MacMainContent: View {
                 MacSidebar()
             } detail: {
                 MacDetailView(item: self.shell.selection ?? .home)
+                    // Fill the column: an empty state (ContentUnavailableView) is only as big
+                    // as its text, and the player bar is laid out from this measured frame.
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     // The player bar floats over the content: scroll views get a bottom margin
                     // so their last rows can still scroll clear of it.
                     .contentMargins(.bottom, Self.playerBarClearance, for: .scrollContent)
@@ -123,6 +126,7 @@ private struct MacDetailView: View {
     var body: some View {
         NavigationStack(path: self.shell.path(for: self.item)) {
             self.root
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .navigationTitle(Text(self.item.title))
                 .entityDestinations()
         }

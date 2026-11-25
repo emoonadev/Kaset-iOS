@@ -280,6 +280,51 @@ struct SearchSuggestionsParserTests {
 
     // MARK: - Helpers
 
+    // MARK: - Search History
+
+    @Test("History entries are flagged and keep their removal token")
+    func parseHistoryEntries() {
+        let data: [String: Any] = [
+            "contents": [
+                [
+                    "searchSuggestionsSectionRenderer": [
+                        "contents": [
+                            [
+                                "historySuggestionRenderer": [
+                                    "suggestion": ["runs": [["text": "past query"]]],
+                                    "serviceEndpoint": [
+                                        "feedbackEndpoint": ["feedbackToken": "TOKEN_PLACEHOLDER"],
+                                    ],
+                                ],
+                            ],
+                            self.makeSearchSuggestionItem(query: "completion"),
+                        ],
+                    ],
+                ],
+            ],
+        ]
+        let suggestions = SearchSuggestionsParser.parse(data)
+
+        #expect(suggestions.count == 2)
+        #expect(suggestions[0].isFromHistory)
+        #expect(suggestions[0].feedbackToken == "TOKEN_PLACEHOLDER")
+        #expect(!suggestions[1].isFromHistory)
+        #expect(suggestions[1].feedbackToken == nil)
+    }
+
+    @Test("History entry without a token is still a history entry")
+    func parseHistoryEntryWithoutToken() {
+        let data: [String: Any] = [
+            "contents": [
+                ["searchSuggestionsSectionRenderer": ["contents": [self.makeHistorySuggestionItem(query: "old")]]],
+            ],
+        ]
+        let suggestion = SearchSuggestionsParser.parse(data).first
+
+        #expect(suggestion?.isFromHistory == true)
+        #expect(suggestion?.feedbackToken == nil)
+    }
+
     private func makeSuggestionsResponse(queries: [String]) -> [String: Any] {
         let suggestionItems = queries.map { query in
             self.makeSearchSuggestionItem(query: query)

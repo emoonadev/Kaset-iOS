@@ -37,19 +37,19 @@ enum SearchSuggestionsParser {
     private static func parseSuggestion(from item: [String: Any]) -> SearchSuggestion? {
         // Try searchSuggestionRenderer (text suggestions)
         if let renderer = item["searchSuggestionRenderer"] as? [String: Any] {
-            return self.parseSuggestionRenderer(renderer)
+            return self.parseSuggestionRenderer(renderer, fromHistory: false)
         }
 
         // Try historySuggestionRenderer (search history)
         if let renderer = item["historySuggestionRenderer"] as? [String: Any] {
-            return self.parseSuggestionRenderer(renderer)
+            return self.parseSuggestionRenderer(renderer, fromHistory: true)
         }
 
         return nil
     }
 
     /// Parses the suggestion text from a renderer.
-    private static func parseSuggestionRenderer(_ renderer: [String: Any]) -> SearchSuggestion? {
+    private static func parseSuggestionRenderer(_ renderer: [String: Any], fromHistory: Bool) -> SearchSuggestion? {
         // Extract suggestion text from runs
         guard let suggestion = renderer["suggestion"] as? [String: Any],
               let runs = suggestion["runs"] as? [[String: Any]]
@@ -64,6 +64,9 @@ enum SearchSuggestionsParser {
             return nil
         }
 
-        return SearchSuggestion(query: queryText)
+        guard fromHistory else { return SearchSuggestion(query: queryText) }
+        // The removal token sits in the entry's menu / service endpoint (`feedbackEndpoint`).
+        let token = ResponseTreeSearch.firstDictionary(named: "feedbackEndpoint", in: renderer)?["feedbackToken"] as? String
+        return SearchSuggestion(query: queryText, isFromHistory: true, feedbackToken: token)
     }
 }
