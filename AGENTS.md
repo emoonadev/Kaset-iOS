@@ -40,12 +40,19 @@ must say so in a **Platform scope** line, with the reason, for example:
 Agents must never decide on their own that a feature is single-platform. If you cannot see how
 to support the other platform, ask the contributor instead of skipping it.
 
-### 2. Every PR bumps the version (minor or major)
+### 2. The version is one step above `main` (minor or major)
 
 The version lives in `project.yml` as `MARKETING_VERSION` and follows
 [Semantic Versioning](https://semver.org) (`MAJOR.MINOR.PATCH`).
 
-- **Each PR/branch bumps `MAJOR.MINOR`** in `project.yml`, according to the work done:
+- **The bump is relative to `main`, the released version, not to `develop`.** What is merged in
+  `develop` is not released yet, so bumping again on top of it is pointless: every change
+  waiting in `develop` ships together in the next release.
+  - If `develop` still has the same `MAJOR.MINOR` as `main`, the PR bumps it one step.
+  - If `develop` is already above `main`, the PR keeps that version. It only bumps again when
+    its change needs a bigger step than the one already made (a major change while `develop`
+    only has a minor bump: go to the next major).
+- **Choosing the step**, according to the work done:
   - **Major** (`1.4` → `2.0`): breaking or very large changes. Examples: a change that drops
     saved data, settings or sign-in sessions, a migration users notice, raising the minimum OS
     version, removing a feature, a full redesign of the app.
@@ -58,10 +65,11 @@ The version lives in `project.yml` as `MARKETING_VERSION` and follows
 - **Bump both app targets together**: `KasetiOS` and `KasetMac` must always have the same
   `MARKETING_VERSION`. Leave `CURRENT_PROJECT_VERSION` alone; the release workflow stamps the
   build number.
-- Bump once per PR, relative to `develop`. If `develop` moved while the PR was open, rebase and
-  make sure the PR still bumps one step above the version on `develop`.
-- State the bump and the reason in the PR description, for example `Version: 1.4 → 1.5 (new
-  feature: artist mixes)`.
+- If `develop` moved while the PR was open, rebase and keep the version `develop` has, unless
+  the rule above asks for a bigger step.
+- State the version and the reason in the PR description, compared with `main`, for example
+  `Version: 1.4 → 1.5 (new feature: artist mixes)` or `Version: 1.5, unchanged (develop is
+  already above main 1.4)`.
 
 ### 3. Everything is in English
 
@@ -86,7 +94,7 @@ All work lands on `develop` first; `main` is the release branch and never receiv
 
 1. Branch from `develop` with a descriptive prefix: `feat/`, `fix/`, `refactor/`, `perf/`,
    `docs/`, `ci/`, `chore/` (for example `feat/sleep-timer`).
-2. Make the change on both platforms (rule 1) and bump the version (rule 2).
+2. Make the change on both platforms (rule 1) and check the version against `main` (rule 2).
 3. Run `xcodegen generate` after adding, removing or moving files. The Xcode project is
    generated and not committed.
 4. Build both targets and run the tests (see below) before opening the PR.
@@ -127,7 +135,8 @@ CI (`.github/workflows/ci.yml`) runs the same two jobs on every PR and on every 
 Include:
 
 - **Summary**: what changed and why.
-- **Version**: old → new, and whether it is minor or major, with the reason.
+- **Version**: compared with `main`: old → new, minor or major, with the reason, or unchanged
+  because `develop` is already above `main` (rule 2).
 - **Platform scope**: `iOS and macOS` (default), or the platform-specific exception and its
   reason (rule 1).
 - **Testing**: what you built and ran, on which platforms and devices.
