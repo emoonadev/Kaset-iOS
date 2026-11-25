@@ -333,6 +333,36 @@
         }
       }
     },
+    "Behavior" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comportement"
+          }
+        }
+      }
+    },
+    "Debug tools and diagnostics. You don't need these for everyday use." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outils de débogage et de diagnostic. Inutiles au quotidien."
+          }
+        }
+      }
+    },
+    "Developer" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Développeur"
+          }
+        }
+      }
+    },
     "Save data on music videos" : {
       "localizations" : {
         "fr" : {
