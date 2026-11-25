@@ -151,36 +151,57 @@ enum PlayerScripts {
             return !b.disabled && b.getAttribute('aria-disabled') !== 'true';
           };
 
-          const videoId = () => {
+          // The player's own record of the loaded video: id, title and author come from the same
+          // object, so they always describe the same track.
+          const videoData = () => {
+            const read = (api) => {
+              if (!api || typeof api.getVideoData !== 'function') { return null; }
+              const d = api.getVideoData();
+              const id = d && (d.video_id || d.videoId);
+              return id ? { id: id, title: d.title || null, author: d.author || null } : null;
+            };
             try {
               const p = document.querySelector('ytmusic-player');
-              if (p && p.playerApi && typeof p.playerApi.getVideoData === 'function') {
-                const d = p.playerApi.getVideoData();
-                const id = d && (d.video_id || d.videoId);
-                if (id) { return id; }
-              }
+              const d = read(p && p.playerApi);
+              if (d) { return d; }
             } catch (e) {}
             try {
-              const m = document.getElementById('movie_player');
-              if (m && typeof m.getVideoData === 'function') {
-                const d = m.getVideoData();
-                const id = d && (d.video_id || d.videoId);
-                if (id) { return id; }
-              }
+              const d = read(document.getElementById('movie_player'));
+              if (d) { return d; }
             } catch (e) {}
-            return new URLSearchParams(location.search).get('v');
+            const id = new URLSearchParams(location.search).get('v');
+            return { id: id, title: null, author: null };
           };
 
-          const metadata = () => {
+          // The Media Session metadata (title, artist, album, artwork) is set by the web app a
+          // moment after the player switches video. Until then it still describes the previous
+          // track, so it is only trusted once it changed since the video did, or when its title
+          // matches the player's.
+          let metaVideo = { id: undefined, staleMeta: null, staleTitle: null };
+          const metadata = (track) => {
             const m = navigator.mediaSession && navigator.mediaSession.metadata;
-            if (!m) { return { title: null, artist: null, album: null, artwork: null }; }
-            const art = m.artwork || [];
-            return {
-              title: m.title || null,
-              artist: m.artist || null,
-              album: m.album || null,
-              artwork: art.length ? art[art.length - 1].src : null
-            };
+            if (track.id !== metaVideo.id) {
+              // Only a previous real video can leave stale details behind (not the page load).
+              const stale = metaVideo.id ? m : null;
+              metaVideo = { id: track.id, staleMeta: stale || null, staleTitle: stale ? stale.title : null };
+            }
+            const fresh = !!m && !!m.title && (
+              (!!track.title && m.title === track.title)
+              || m !== metaVideo.staleMeta || m.title !== metaVideo.staleTitle
+            );
+            if (fresh) {
+              const art = m.artwork || [];
+              return {
+                fresh: true,
+                title: m.title || null,
+                artist: m.artist || null,
+                album: m.album || null,
+                artwork: art.length ? art[art.length - 1].src : null
+              };
+            }
+            // Never pair the new video with the previous track's details: use the player's.
+            const author = track.author ? track.author.replace(/ - Topic$/, '') : null;
+            return { fresh: false, title: track.title, artist: author, album: null, artwork: null };
           };
 
           const text = (el, sel) => {
@@ -264,18 +285,24 @@ enum PlayerScripts {
           };
 
           let lastQueueKey = '';
+          // What identifies the reported track and its details, to post as soon as either moves.
+          let lastTrackKey = '';
+          const trackKey = (track, meta) => [track.id, meta.fresh, meta.title, meta.artwork].join('|');
           const state = (ev, withQueue) => {
             const m = media();
-            const meta = metadata();
+            const track = videoData();
+            const meta = metadata(track);
+            lastTrackKey = trackKey(track, meta);
             const out = {
               kind: 'state', ev: ev,
               paused: m ? m.paused : null,
               ended: m ? m.ended : null,
               currentTime: m ? Math.round(m.currentTime * 10) / 10 : null,
               duration: (m && isFinite(m.duration)) ? Math.round(m.duration * 10) / 10 : null,
-              videoId: videoId(),
+              videoId: track.id,
               listId: new URLSearchParams(location.search).get('list'),
               title: meta.title, artist: meta.artist, album: meta.album, artwork: meta.artwork,
+              metaFresh: meta.fresh,
               canNext: enabled('next'), canPrevious: enabled('previous'),
               shuffle: shuffleOn(), repeat: repeatMode(), ad: adNow(),
               buf: bufferAhead(),
@@ -326,6 +353,34 @@ enum PlayerScripts {
             lastBeat = now;
             post(Object.assign(state('hb', true), { kind: 'state', hb: true }));
           }, 1000);
+
+          // The track's details settle after the media events of a track change, and nothing in
+          // the media element signals it: post a state as soon as the Media Session metadata is
+          // replaced, and check every 500 ms in case the web app edits it in place instead.
+          const postIfTrackMoved = () => {
+            try {
+              const track = videoData();
+              if (trackKey(track, metadata(track)) !== lastTrackKey) { post(state('track', true)); }
+            } catch (e) {}
+          };
+          setInterval(postIfTrackMoved, 500);
+          (function () {
+            try {
+              const ms = navigator.mediaSession;
+              const desc = ms && typeof MediaSession !== 'undefined'
+                ? Object.getOwnPropertyDescriptor(MediaSession.prototype, 'metadata') : null;
+              if (!desc || !desc.get || !desc.set) { return; }
+              Object.defineProperty(ms, 'metadata', {
+                configurable: true,
+                enumerable: true,
+                get: function () { return desc.get.call(this); },
+                set: function (value) {
+                  desc.set.call(this, value);
+                  setTimeout(postIfTrackMoved, 0);
+                }
+              });
+            } catch (e) {}
+          })();
 
           // Optional ad skipping: when an ad is playing and the setting is on, press next (the
           // page then moves past the ad). A fallback seeks the ad to its end. Rate limited so a
