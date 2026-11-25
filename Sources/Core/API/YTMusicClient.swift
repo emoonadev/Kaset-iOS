@@ -147,6 +147,23 @@ final class YTMusicClient {
         return SearchSuggestionsParser.parse(data)
     }
 
+    /// The signed-in account's recent searches: what YouTube Music lists under an empty search
+    /// field. Empty as a guest.
+    func getSearchHistory() async throws -> [SearchSuggestion] {
+        let data = try await self.request("music/get_search_suggestions", body: ["input": ""])
+        let suggestions = SearchSuggestionsParser.parse(data)
+        let history = suggestions.filter(\.isFromHistory)
+        // Counts only: the entries are personal.
+        self.logger.debug("Search history: \(history.count) of \(suggestions.count) entries")
+        return history
+    }
+
+    /// Removes entries from the account's search history.
+    func removeSearchHistory(feedbackTokens: [String]) async throws {
+        guard !feedbackTokens.isEmpty else { return }
+        _ = try await self.request("feedback", body: ["feedbackTokens": feedbackTokens])
+    }
+
     /// Drops cached responses and pagination state (sign-out, account switch).
     func resetSessionState() {
         self.continuationGeneration &+= 1

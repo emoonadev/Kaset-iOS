@@ -13,7 +13,7 @@ Legend: `[x]` shipped · `[ ]` planned.
 - [x] Sign-in, guest mode, brand-account switching, avatar in the navigation bar
 - [x] Home, Explore, Charts, Moods (grid), New, Library, Liked music, History
 - [x] Playlist, album and artist pages (iOS-style header, now-playing indicator)
-- [x] Search with recent searches, suggestions, kind segments and paginated filtered results
+- [x] Search with recent searches (your YouTube Music search history when signed in), suggestions, kind segments and paginated filtered results
 - [x] Now Playing in the Apple Music layout (artwork tint, scrubber, volume, lyrics, AirPlay)
 - [x] Queue: jump, remove, reorder, play next, add to queue
 - [x] Like, add to library, follow, share

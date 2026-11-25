@@ -20,7 +20,10 @@ final class SearchViewModel {
     private(set) var suggestions: [SearchSuggestion] = []
     private(set) var submittedQuery = ""
     private(set) var buckets: [SearchFilter: Bucket] = [:]
+    /// Searches made on this device: shown as a guest, or when the account has no history.
     private(set) var recents: [String]
+    /// The signed-in account's search history from YouTube Music, shared with its other apps.
+    private(set) var accountHistory: [SearchSuggestion] = []
     private(set) var isLoadingMore = false
 
     private let client: YTMusicClient
@@ -58,14 +61,36 @@ final class SearchViewModel {
         self.suggestions = fetched
     }
 
-    func removeRecent(_ text: String) {
-        self.recents.removeAll { $0 == text }
+    /// Recent searches on screen: the account's history when YouTube Music has one, otherwise
+    /// the searches made on this device.
+    var recentSearches: [SearchSuggestion] {
+        if !self.accountHistory.isEmpty { return self.accountHistory }
+        return self.recents.map { SearchSuggestion(id: "local-\($0)", query: $0) }
+    }
+
+    /// Reloads the account's search history (nothing as a guest; the local list stays).
+    func refreshHistory() async {
+        guard let history = try? await self.client.getSearchHistory(), !Task.isCancelled else { return }
+        self.accountHistory = history
+    }
+
+    func removeRecent(_ entry: SearchSuggestion) {
+        self.recents.removeAll { $0.caseInsensitiveCompare(entry.query) == .orderedSame }
         UserDefaults.standard.set(self.recents, forKey: Self.recentsKey)
+        self.accountHistory.removeAll { $0.id == entry.id }
+        if let token = entry.feedbackToken {
+            Task { try? await self.client.removeSearchHistory(feedbackTokens: [token]) }
+        }
     }
 
     func clearRecents() {
         self.recents = []
         UserDefaults.standard.removeObject(forKey: Self.recentsKey)
+        let tokens = self.accountHistory.compactMap(\.feedbackToken)
+        self.accountHistory = []
+        if !tokens.isEmpty {
+            Task { try? await self.client.removeSearchHistory(feedbackTokens: tokens) }
+        }
     }
 
     private func remember(_ text: String) {
@@ -211,7 +236,7 @@ struct SearchContent: View {
                 Button {
                     self.search(suggestion.query)
                 } label: {
-                    Label(suggestion.query, systemImage: "magnifyingglass")
+                    Label(suggestion.query, systemImage: suggestion.isFromHistory ? "clock.arrow.circlepath" : "magnifyingglass")
                 }
             }
         }
@@ -220,13 +245,24 @@ struct SearchContent: View {
             if text.isEmpty { self.model.clearResults() }
         }
         .task(id: self.model.query) { await self.model.updateSuggestions() }
+        // The account's history, each time the recent searches come back on screen (a search
+        // just made is in it) and when the account changes.
+        .task(id: HistoryRefreshKey(isIdle: !self.model.hasSubmitted, auth: self.environment.auth.state)) {
+            guard !self.model.hasSubmitted else { return }
+            await self.model.refreshHistory()
+        }
+    }
+
+    private struct HistoryRefreshKey: Equatable {
+        let isIdle: Bool
+        let auth: AuthState
     }
 
     // MARK: Idle: recent searches
 
     @ViewBuilder
     private var idle: some View {
-        if self.model.recents.isEmpty {
+        if self.model.recentSearches.isEmpty {
             ContentUnavailableView(
                 "Search YouTube Music", systemImage: "magnifyingglass",
                 description: Text("Songs, albums, artists, playlists and videos.")
@@ -234,14 +270,18 @@ struct SearchContent: View {
         } else {
             List {
                 Section {
-                    ForEach(self.model.recents, id: \.self) { recent in
+                    ForEach(self.model.recentSearches) { recent in
                         Button {
-                            Task { await self.model.submit(recent) }
+                            Task { await self.model.submit(recent.query) }
                         } label: {
-                            Label(recent, systemImage: "clock.arrow.circlepath")
+                            Label(recent.query, systemImage: "clock.arrow.circlepath")
                                 .foregroundStyle(.primary)
                         }
                         .swipeActions {
+                            Button("Remove", role: .destructive) { self.model.removeRecent(recent) }
+                        }
+                        // No swipe with a mouse: the Mac removes entries from the context menu.
+                        .contextMenu {
                             Button("Remove", role: .destructive) { self.model.removeRecent(recent) }
                         }
                     }
