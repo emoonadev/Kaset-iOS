@@ -1,34 +1,47 @@
 {
-  "fill" : "automatic",
-  "groups" : [
+  "fill": "automatic",
+  "groups": [
     {
-      "layers" : [
+      "layers": [
         {
-          "glass" : true,
-          "hidden" : false,
-          "image-name" : "Image Layer.png",
-          "name" : "Image Layer",
-          "position" : {
-            "scale" : 1.1,
-            "translation-in-points" : [
+          "glass": true,
+          "hidden": false,
+          "image-name": "Play.png",
+          "name": "Play",
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "glass": true,
+          "hidden": false,
+          "image-name": "Reel.png",
+          "name": "Reel",
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
               0,
               0
             ]
           }
         }
       ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
       },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
+      "translucency": {
+        "enabled": false,
+        "value": 0.5
       }
     }
   ],
-  "supported-platforms" : {
-    "squares" : [
+  "supported-platforms": {
+    "squares": [
       "macOS"
     ]
   }
