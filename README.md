@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="140" alt="Kaset icon">
+  <img src="Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="140" alt="Spool icon">
 </p>
 
-<h1 align="center">Kaset for iOS &amp; macOS</h1>
+<h1 align="center">Spool</h1>
 
 <p align="center">
   A native SwiftUI YouTube Music client for iPhone, iPad and Mac.<br>
@@ -11,13 +11,14 @@
 
 ---
 
-Kaset is an unofficial, open-source YouTube Music client for **iPhone, iPad and Mac**, built from
+Spool is an unofficial, open-source YouTube Music client for **iPhone, iPad and Mac**, built from
 a single SwiftUI codebase. The interface is fully native (Liquid Glass, iOS 26 / macOS 26), while
 playback is delegated to the real YouTube Music web player running in a hidden web view. That
 gives you background playback, lock-screen and AirPods controls, and an Apple Music-like
 interface, with your own YouTube Music account.
 
-It is **inspired by, and adapted from, [Kaset for macOS](https://github.com/sozercan/kaset)**
+Spool was previously called *Kaset for iOS*. It is **inspired by, and adapted from,
+[Kaset for macOS](https://github.com/sozercan/kaset)**
 by [@sozercan](https://github.com/sozercan): the InnerTube client, response parsers, models,
 playback-bridge scripts and the app icon come from there. This project exists because the
 macOS app's player stack could not be shared with iOS as is, so the pieces that matter were
@@ -131,8 +132,8 @@ approach (background playback, keep-alive, lock-screen controls).
 ## Build and run
 
 ```bash
-git clone https://github.com/emoonadev/Kaset-iOS.git
-cd Kaset-iOS
+git clone https://github.com/emoonadev/Spool.git
+cd Spool
 xcodegen generate
 open KasetiOS.xcodeproj
 ```

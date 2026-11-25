@@ -22,7 +22,7 @@ targets:
     info:
       path: Sources/Info.plist
       properties:
-        CFBundleDisplayName: Kaset
+        CFBundleDisplayName: Spool
         CFBundleLocalizations: [en, fr]
         CFBundleDevelopmentRegion: en
         UIBackgroundModes:
@@ -67,8 +67,8 @@ targets:
     info:
       path: Mac/Info.plist
       properties:
-        CFBundleDisplayName: Kaset
-        CFBundleName: Kaset
+        CFBundleDisplayName: Spool
+        CFBundleName: Spool
         CFBundleLocalizations: [en, fr]
         CFBundleDevelopmentRegion: en
         LSApplicationCategoryType: public.app-category.music
@@ -76,7 +76,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.emoona.kaset.mac
-        PRODUCT_NAME: Kaset
+        PRODUCT_NAME: Spool
         # Icon Composer icon from Kaset for macOS (same artwork as the iOS AppIcon.png).
         ASSETCATALOG_COMPILER_APPICON_NAME: KasetMacIcon
         MARKETING_VERSION: "0.1"

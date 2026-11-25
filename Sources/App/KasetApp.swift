@@ -23,7 +23,7 @@ struct KasetApp: App {
         }
         #else
         // One main window, like Kaset for macOS: closing it keeps the app (and the music) running.
-        Window("Kaset", id: "main") {
+        Window("Spool", id: "main") {
             RootView()
                 .environment(environment)
                 .tint(Color.brand)
