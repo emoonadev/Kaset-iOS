@@ -10,8 +10,8 @@ struct HomeView: View {
             Group {
                 if let model {
                     BrowsePageView(model: model, emptyMessage: "No recommendations yet.") {
-                        NewReleasesShelf()
                         MixesShelf()
+                        NewReleasesShelf()
                     }
                 } else {
                     ProgressView()

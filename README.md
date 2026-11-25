@@ -5,13 +5,13 @@
 <h1 align="center">Kaset for iOS</h1>
 
 <p align="center">
-  A native SwiftUI YouTube Music client for iPhone, built to keep playing with the screen locked.
+  A native SwiftUI YouTube Music client for iPhone and Mac, built to keep playing with the screen locked.
 </p>
 
 ---
 
-Kaset for iOS is an unofficial, open-source YouTube Music client. The interface is fully native
-(SwiftUI, Liquid Glass, iOS 26), while playback is delegated to the real YouTube Music web
+Kaset for iOS is an unofficial, open-source YouTube Music client for **iPhone, iPad and macOS**.
+The interface is fully native (SwiftUI, Liquid Glass, iOS 26 / macOS 26), while playback is delegated to the real YouTube Music web
 player running in a hidden web view. That gives you background playback, lock-screen and
 AirPods controls, and an Apple Music-like interface, with your own YouTube Music account.
 
@@ -60,6 +60,16 @@ carried over and the player was rebuilt for iOS.
 - **Settings:** audio quality, content language, haptics, optional ad skipping (off by default).
 - **Localized** in English and French.
 
+### macOS app
+
+The same codebase also builds a native **macOS app** (`KasetMac` target). It shares the
+InnerTube client, playback engine and feature screens with iOS, but uses a desktop layout:
+
+- Sidebar navigation (Search, Home, Discover, Collection, your playlists) and account switcher.
+- Player bar at the bottom of the content, with like, AirPlay, shuffle, repeat and volume.
+- Lyrics and queue in a panel on the right.
+- Paging arrows on horizontal shelves, keyboard and trackpad friendly.
+
 ## How it works
 
 ```
@@ -82,6 +92,7 @@ Sources/
   Core/       InnerTube client, models, parsers (adapted from Kaset macOS)
   Playback/   WebPlayer, page scripts, state, Now Playing, audio session
   Features/   Home, Discover, Collections, Search, Detail, Now Playing, Settings, Shell
+  Mac/        macOS shell: main window, sidebar, player bar, side panel
   Debug/      log and diagnostic screens
 Tests/        parsers (sanitized fixtures), auth, playback state
 docs/         screenshots, spike findings
@@ -92,7 +103,8 @@ approach (background playback, keep-alive, lock-screen controls).
 
 ## Requirements
 
-- Xcode 26 and an iOS 26 device (iPhone first)
+- Xcode 26
+- An iOS 26 device (iPhone or iPad), and/or a Mac running macOS 26
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
 - A YouTube Music account (Premium is not required)
 
@@ -105,7 +117,13 @@ xcodegen generate
 open KasetiOS.xcodeproj
 ```
 
-Select your team under **Signing & Capabilities**, choose your iPhone, and run.
+- **iOS:** choose the `KasetiOS` scheme, select your team under **Signing & Capabilities**,
+  pick your iPhone, and run.
+- **macOS:** choose the `KasetMac` scheme and run on *My Mac*. It is ad-hoc signed, so no team
+  is needed.
+
+Run `xcodegen generate` again whenever files are added or removed (for example after a pull);
+the Xcode project is generated and not committed.
 
 ### Sideloading with a free Apple ID
 

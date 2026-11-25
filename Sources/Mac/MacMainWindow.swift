@@ -158,8 +158,8 @@ private struct MacDetailView: View {
             case .home:
                 let model = self.shell.browseModel(for: .home)
                 BrowsePageView(model: model, emptyMessage: "No recommendations yet.") {
-                    NewReleasesShelf()
                     MixesShelf()
+                    NewReleasesShelf()
                 }
                 .onAppear { self.shell.loadHome(for: self.environment.auth.state) }
                 .onChange(of: self.environment.auth.state) { _, state in self.shell.loadHome(for: state) }
