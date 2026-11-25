@@ -182,6 +182,10 @@ Issues and pull requests are welcome. A few ground rules: verify an endpoint aga
 service (or Kaset's `api-explorer`) before writing a parser, keep the web view as the source of
 truth for playback, and never put cookies, tokens or personal responses in code, logs or fixtures.
 
+Read [`AGENTS.md`](AGENTS.md) before opening a pull request (`CLAUDE.md` points to the same
+file): every feature ships on both iOS and macOS unless explicitly scoped to one platform, every
+PR bumps the minor or major version in `project.yml`, and everything is written in English.
+
 ## Acknowledgements
 
 - [**Kaset for macOS**](https://github.com/sozercan/kaset) by Sertaç Özercan – the project this
