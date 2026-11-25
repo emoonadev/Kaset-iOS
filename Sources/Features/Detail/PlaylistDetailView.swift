@@ -192,14 +192,16 @@ struct PlaylistDetailView: View {
                 }
                 Section {
                     ForEach(Array(model.tracks.enumerated()), id: \.element.id) { index, song in
-                        TrackRow(song: song, index: index + 1, showsArtwork: model.detail?.isAlbum != true) {
+                        let removal = self.removal(of: song, model: model)
+                        TrackRow(
+                            song: song, index: index + 1, showsArtwork: model.detail?.isAlbum != true,
+                            onRemove: removal
+                        ) {
                             self.play(song, model: model)
                         }
                         .swipeActions(edge: .trailing) {
-                            if model.detail?.canDelete == true, let setVideoId = song.playlistSetVideoId {
-                                Button("Remove", role: .destructive) {
-                                    Task { await model.remove(song, setVideoId: setVideoId) }
-                                }
+                            if let removal {
+                                Button("Remove", role: .destructive, action: removal)
                             }
                         }
                         .task { await model.loadMoreIfNeeded(after: song) }
@@ -415,6 +417,12 @@ struct PlaylistDetailView: View {
         }
     }
 
+    /// Removing a song, when this is a playlist the user owns.
+    private func removal(of song: Song, model: PlaylistDetailModel) -> (() -> Void)? {
+        guard model.detail?.canDelete == true, let setVideoId = song.playlistSetVideoId else { return nil }
+        return { Task { await model.remove(song, setVideoId: setVideoId) } }
+    }
+
     private func play(_ song: Song, model: PlaylistDetailModel) {
         let list = model.watchListId ?? "RDAMVM\(song.videoId)"
         self.environment.player.play(videoId: song.videoId, playlistId: list)
@@ -428,6 +436,9 @@ struct TrackRow: View {
     let song: Song
     var index: Int?
     var showsArtwork = true
+    /// Removes the song from the playlist on screen (playlists the user owns). Offered in the
+    /// menus too: a mouse cannot swipe.
+    var onRemove: (() -> Void)?
     let onPlay: () -> Void
 
     @State private var isAddToPlaylistPresented = false
@@ -525,6 +536,10 @@ struct TrackRow: View {
             Button("Like", systemImage: "heart") {
                 Task { try? await self.environment.client.rateSong(videoId: self.song.videoId, rating: .like) }
             }
+        }
+        if let onRemove {
+            Divider()
+            Button("Remove from Playlist", systemImage: "minus.circle", role: .destructive, action: onRemove)
         }
     }
 
