@@ -76,7 +76,7 @@ The app is not notarized, so on first launch right-click Spool and choose **Open
 - **Siri and Shortcuts:** play a playlist, search and play, start a radio, like the current song;
   chain them with Shazam's *Recognise Music* or a Clock alarm. Visual Intelligence results on
   Apple Intelligence iPhones.
-- **Settings:** audio quality, content language, haptics, optional ad skipping (off by default).
+- **Settings:** audio quality, content language, haptics, ad skipping (on by default, can be turned off).
 - **Localized** in English and French.
 
 ### Mac
@@ -176,7 +176,7 @@ See the [roadmap](ROADMAP.md) for what is planned next.
   state, queue jump/remove and "add to queue" are best effort and can break when the page changes.
 - Queue reordering works by rewriting the affected part of the queue through the page's own menus (the page has no reorder primitive), so moving an entry far down the queue is slow.
 - Podcasts, video mode, scrobbling and AI features of the macOS app are out of scope for v1.
-- Ad skipping is opt-in and may go against YouTube's terms of service.
+- Ad skipping is on by default and may go against YouTube's terms of service; it can be turned off in Settings.
 
 ## Contributing
 

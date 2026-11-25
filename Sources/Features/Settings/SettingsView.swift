@@ -36,7 +36,7 @@ struct PlaybackSettingsSections: View {
 
     @AppStorage(PlaybackAudioQuality.storageKey) private var audioQuality = PlaybackAudioQuality.auto.rawValue
     @AppStorage(Haptics.storageKey) private var haptics = true
-    @AppStorage(AdSkip.storageKey) private var adAutoSkip = false
+    @AppStorage(AdSkip.storageKey) private var adAutoSkip = true
     @AppStorage(DataSaver.storageKey) private var dataSaver = true
     @AppStorage(BufferPolicy.adaptiveQualityStorageKey) private var adaptiveQuality = true
     @AppStorage(BufferPolicy.extendedStorageKey) private var extendedBuffer = false
@@ -54,7 +54,7 @@ struct PlaybackSettingsSections: View {
         } header: {
             Text("Playback")
         } footer: {
-            Text("Skipping ads is an opt-in and may go against YouTube's terms of service.")
+            Text("Skipping ads may go against YouTube's terms of service; turn it off if you prefer to watch them.")
         }
         .onChange(of: self.adAutoSkip) { _, _ in self.environment.player.applyAdSkipSetting() }
 

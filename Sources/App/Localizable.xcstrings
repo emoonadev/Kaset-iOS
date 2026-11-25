@@ -2312,6 +2312,16 @@
         }
       }
     },
+    "Skipping ads may go against YouTube's terms of service; turn it off if you prefer to watch them." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passer les publicités peut aller à l’encontre des conditions d’utilisation de YouTube ; désactivez l’option si vous préférez les voir."
+          }
+        }
+      }
+    },
     "Song" : {
       "extractionState" : "stale",
       "localizations" : {

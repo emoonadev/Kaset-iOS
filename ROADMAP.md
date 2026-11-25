@@ -19,7 +19,7 @@ Legend: `[x]` shipped · `[ ]` planned.
 - [x] Like, add to library, follow, share
 - [x] Create / rename / delete playlists, add songs or whole covers to a playlist
 - [x] Recovery after web content termination, network changes and stuck streams; session restore
-- [x] Audio quality, content language, haptics, opt-in ad skipping
+- [x] Audio quality, content language, haptics, ad skipping (on by default)
 - [x] English and French
 - [x] Synced lyrics: highlighted line follows playback, tap a line to seek (YouTube Music, LRCLib
       fallback)
