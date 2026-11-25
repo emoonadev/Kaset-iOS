@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Account, playback and content preferences, plus diagnostics entry points.
+/// Account, playback and content preferences. Debug tools live in `DeveloperSettingsView`.
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
@@ -8,10 +8,8 @@ struct SettingsView: View {
     @AppStorage(PlaybackAudioQuality.storageKey) private var audioQuality = PlaybackAudioQuality.auto.rawValue
     @AppStorage(ContentLanguage.storageKey) private var language = ContentLanguage.system.rawValue
     @AppStorage(Haptics.storageKey) private var haptics = true
-    @AppStorage("nativeNowPlaying") private var nativeNowPlaying = true
     @AppStorage(AdSkip.storageKey) private var adAutoSkip = false
     @AppStorage(DataSaver.storageKey) private var dataSaver = true
-    @AppStorage("settings.handlePhoneCalls") private var handlePhoneCalls = true
     @AppStorage(BufferPolicy.adaptiveQualityStorageKey) private var adaptiveQuality = true
     @AppStorage(BufferPolicy.extendedStorageKey) private var extendedBuffer = false
     @AppStorage(NewReleaseWatcher.notificationsStorageKey) private var newReleaseNotifications = true
@@ -74,25 +72,19 @@ struct SettingsView: View {
                     Text("Changes the language of titles and shelves returned by YouTube Music.")
                 }
 
-                Section("Diagnostics") {
-                    Toggle("Native Now Playing card", isOn: self.$nativeNowPlaying)
-                    #if os(iOS)
-                    Toggle("Pause for phone calls (relaunch)", isOn: self.$handlePhoneCalls)
-                    #endif
+                Section {
                     NavigationLink {
-                        PlayerHealthView(player: self.environment.player)
+                        DeveloperSettingsView()
                     } label: {
                         let failing = self.environment.player.healthReport?.failing.count ?? 0
-                        LabeledContent("Player health") {
+                        LabeledContent("Developer") {
                             if failing > 0 {
                                 Text("\(failing) failing").foregroundStyle(.red)
                             }
                         }
                     }
-                    Button("Inspect queue (log)") { self.environment.player.inspectQueue() }
-                    Button("Inspect buffer (log)") { self.environment.player.inspectBuffer() }
-                    NavigationLink("Playback debug") { PlaybackDebugView(player: self.environment.player) }
-                    NavigationLink("API debug") { APIDebugView(client: self.environment.client, player: self.environment.player) }
+                } footer: {
+                    Text("Debug tools and diagnostics. You don't need these for everyday use.")
                 }
             }
             .navigationTitle("Settings")
