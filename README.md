@@ -2,30 +2,35 @@
   <img src="Sources/App/Assets.xcassets/AppIcon.appiconset/AppIcon.png" width="140" alt="Kaset icon">
 </p>
 
-<h1 align="center">Kaset for iOS</h1>
+<h1 align="center">Kaset for iOS &amp; macOS</h1>
 
 <p align="center">
-  A native SwiftUI YouTube Music client for iPhone and Mac, built to keep playing with the screen locked.
+  A native SwiftUI YouTube Music client for iPhone, iPad and Mac.<br>
+  One codebase, two native layouts, background playback that keeps going.
 </p>
 
 ---
 
-Kaset for iOS is an unofficial, open-source YouTube Music client for **iPhone, iPad and macOS**.
-The interface is fully native (SwiftUI, Liquid Glass, iOS 26 / macOS 26), while playback is delegated to the real YouTube Music web
-player running in a hidden web view. That gives you background playback, lock-screen and
-AirPods controls, and an Apple Music-like interface, with your own YouTube Music account.
+Kaset is an unofficial, open-source YouTube Music client for **iPhone, iPad and Mac**, built from
+a single SwiftUI codebase. The interface is fully native (Liquid Glass, iOS 26 / macOS 26), while
+playback is delegated to the real YouTube Music web player running in a hidden web view. That
+gives you background playback, lock-screen and AirPods controls, and an Apple Music-like
+interface, with your own YouTube Music account.
 
 It is **inspired by, and adapted from, [Kaset for macOS](https://github.com/sozercan/kaset)**
 by [@sozercan](https://github.com/sozercan): the InnerTube client, response parsers, models,
 playback-bridge scripts and the app icon come from there. This project exists because the
 macOS app's player stack could not be shared with iOS as is, so the pieces that matter were
-carried over and the player was rebuilt for iOS.
+carried over and the player was rebuilt for iOS. The Mac app now runs on that same shared stack,
+with its own desktop layout.
 
 > **Disclaimer** – Not affiliated with, endorsed by, or sponsored by YouTube or Google. It uses
 > undocumented endpoints that can change at any time. Use it with your own account and at your
 > own risk.
 
 ## Screenshots
+
+### iPhone &amp; iPad
 
 <table>
   <tr>
@@ -40,7 +45,22 @@ carried over and the player was rebuilt for iOS.
   </tr>
 </table>
 
+### Mac
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/mac-home.png" alt="macOS Home" width="420"></td>
+    <td align="center"><img src="docs/screenshots/mac-playlist.png" alt="macOS Playlist" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Home</b><br>Sidebar, shelves and player bar</sub></td>
+    <td align="center"><sub><b>Mix</b><br>Playlist page with Play, Shuffle and Regenerate</sub></td>
+  </tr>
+</table>
+
 ## Features
+
+### iPhone &amp; iPad
 
 - **Home, Discover, Collections, Search** tabs in the Apple Music layout, with the mini player as the
   tab bar accessory (full pill, compact inline when the bar minimizes).
@@ -60,26 +80,15 @@ carried over and the player was rebuilt for iOS.
 - **Settings:** audio quality, content language, haptics, optional ad skipping (off by default).
 - **Localized** in English and French.
 
-### macOS app
+### Mac
 
-The same codebase also builds a native **macOS app** (`KasetMac` target). It shares the
-InnerTube client, playback engine and feature screens with iOS, but uses a desktop layout:
+The `KasetMac` target shares the InnerTube client, playback engine and feature screens with
+iOS, with a desktop layout:
 
 - Sidebar navigation (Search, Home, Discover, Collection, your playlists) and account switcher.
 - Player bar at the bottom of the content, with like, AirPlay, shuffle, repeat and volume.
 - Lyrics and queue in a panel on the right.
 - Paging arrows on horizontal shelves, keyboard and trackpad friendly.
-
-<table>
-  <tr>
-    <td align="center"><img src="docs/screenshots/mac-home.png" alt="macOS Home" width="420"></td>
-    <td align="center"><img src="docs/screenshots/mac-playlist.png" alt="macOS Playlist" width="420"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub><b>Home</b><br>Sidebar, shelves and player bar</sub></td>
-    <td align="center"><sub><b>Mix</b><br>Playlist page with Play, Shuffle and Regenerate</sub></td>
-  </tr>
-</table>
 
 ## How it works
 
