@@ -88,6 +88,58 @@ struct PageScriptTests {
         #expect(report.failing.allSatisfy { !$0.needsTrack })
     }
 
+    /// The player switches video before the web app updates the Media Session: the state must
+    /// never pair the new video with the previous track's title or artwork.
+    @Test func stateNeverPairsANewVideoWithThePreviousTracksMetadata() throws {
+        let context = self.makeContext()
+        context.evaluateScript("""
+        function URLSearchParams() { this.get = function () { return null; }; }
+        var __video = { video_id: 'A', title: 'Song A', author: 'Artist A - Topic' };
+        var __player = { getVideoData: function () { return __video; } };
+        document.getElementById = function (id) { return id === 'movie_player' ? __player : null; };
+        navigator.mediaSession.metadata = {
+          title: 'Song A', artist: 'Artist A', album: 'Album A', artwork: [{ src: 'https://example.com/a.jpg' }]
+        };
+        """)
+        context.evaluateScript(PlayerScripts.page)
+        func state() throws -> PlaybackState {
+            let json = try #require(context.evaluateScript("JSON.stringify(window.__kaset.state())").toString())
+            let message = try #require(try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
+            return PlaybackState().applying(message)
+        }
+
+        let first = try state()
+        #expect(first.videoId == "A" && first.title == "Song A" && first.album == "Album A")
+        #expect(first.isMetadataCurrent)
+
+        // Next song: the player has B, the Media Session still describes A.
+        context.evaluateScript("__video = { video_id: 'B', title: 'Song B', author: 'Artist B - Topic' };")
+        let switching = try state()
+        #expect(switching.videoId == "B")
+        #expect(!switching.isMetadataCurrent)
+        #expect(switching.title == "Song B" && switching.artist == "Artist B")
+        #expect(switching.album == nil && switching.artworkURL == nil)
+
+        // The web app sets B's metadata.
+        context.evaluateScript("""
+        navigator.mediaSession.metadata = {
+          title: 'Song B', artist: 'Artist B', album: 'Album B', artwork: [{ src: 'https://example.com/b.jpg' }]
+        };
+        """)
+        let settled = try state()
+        #expect(settled.isMetadataCurrent && settled.title == "Song B" && settled.album == "Album B")
+        #expect(settled.artworkURL?.absoluteString == "https://example.com/b.jpg")
+
+        // Titles that differ between the player and the Media Session: replacing the metadata
+        // after the video changed is enough.
+        context.evaluateScript("__video = { video_id: 'C', title: 'Song C (Official Audio)', author: 'Artist C' };")
+        #expect(try !state().isMetadataCurrent)
+        context.evaluateScript("navigator.mediaSession.metadata = { title: 'Song C', artist: 'Artist C', album: '', artwork: [] };")
+        let renamed = try state()
+        #expect(renamed.isMetadataCurrent && renamed.title == "Song C")
+        #expect(context.exception == nil, "page script threw: \(context.exception?.toString() ?? "")")
+    }
+
     @Test func injectedScriptsAreSyntacticallyValid() {
         let scripts: [(String, String)] = [
             ("playNext", PlayerScripts.playNext(videoId: "abc", afterVideoId: "def", attempt: 1)),

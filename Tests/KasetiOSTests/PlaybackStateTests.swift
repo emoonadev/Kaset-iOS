@@ -22,6 +22,14 @@ struct PlaybackStateTests {
         #expect(state.visibility == "hidden")
     }
 
+    @Test func metadataFreshnessFollowsThePageAndPersistsWhenAbsent() {
+        let settling = PlaybackState().applying(["videoId": "b", "title": "B", "metaFresh": false])
+        #expect(!settling.isMetadataCurrent)
+        #expect(!settling.applying(["currentTime": 1.0]).isMetadataCurrent)
+        #expect(settling.applying(["metaFresh": true]).isMetadataCurrent)
+        #expect(PlaybackState().isMetadataCurrent)
+    }
+
     @Test func pausedAndEndedAreNotPlaying() {
         let paused = PlaybackState().applying(["paused": true, "ended": false])
         #expect(!paused.isPlaying && paused.hasMedia)

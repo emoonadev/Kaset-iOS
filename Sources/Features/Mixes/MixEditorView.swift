@@ -3,153 +3,130 @@ import SwiftUI
 /// Creates or edits an artist mix: picked artists, suggestions (followed artists and the
 /// history), artist search, and the options. Saving creates (or updates) the mix's private
 /// YouTube Music playlist; "Play" saves and starts it.
+///
+/// iOS shows a navigation form with a bottom "Play" button; macOS shows a two-pane sheet
+/// (`MacMixEditorView`) with the actions at the bottom trailing edge.
 struct MixEditorView: View {
-    private static var searchPlacement: SearchFieldPlacement {
-        #if os(iOS)
-        .navigationBarDrawer(displayMode: .always)
-        #else
-        .automatic
-        #endif
-    }
-
-    @Environment(AppEnvironment.self) private var environment
-    @Environment(\.dismiss) private var dismiss
-
-    private let isNew: Bool
-    private let original: ArtistMix?
-    @State private var mix: ArtistMix
-    @State private var isSaving = false
-    @State private var failureMessage: String?
-    @State private var query = ""
-    @State private var results: [Artist] = []
-    @State private var isSearching = false
-    @State private var suggestions: [MixArtist] = []
-    @State private var isConfirmingDelete = false
+    @State private var model: MixEditorModel
 
     init(mix: ArtistMix? = nil) {
-        self.isNew = mix == nil
-        self.original = mix
-        self._mix = State(initialValue: mix ?? ArtistMix(name: "", artists: []))
+        self._model = State(initialValue: MixEditorModel(mix: mix))
     }
+
+    var body: some View {
+        #if os(macOS)
+        MacMixEditorView(model: self.model)
+        #else
+        IOSMixEditorView(model: self.model)
+        #endif
+    }
+}
+
+#if os(iOS)
+private struct IOSMixEditorView: View {
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.dismiss) private var dismiss
+    @Bindable var model: MixEditorModel
 
     var body: some View {
         NavigationStack {
             List {
-                if self.query.isEmpty {
+                if self.model.query.isEmpty {
                     self.nameSection
                     self.optionsSection
                     self.artistsSection
                     self.suggestionsSection
-                    if !self.isNew {
+                    if !self.model.isNew {
                         Section {
-                            Button("Delete Mix", role: .destructive) { self.isConfirmingDelete = true }
+                            Button("Delete Mix", role: .destructive) { self.model.isConfirmingDelete = true }
                         }
                     }
                 } else {
                     self.resultsSection
                 }
             }
-            .searchable(text: self.$query, placement: Self.searchPlacement, prompt: "Search artists")
-            .navigationTitle(self.isNew ? "New Mix" : "Edit Mix")
+            .searchable(text: self.$model.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search artists")
+            .navigationTitle(self.model.isNew ? "New Mix" : "Edit Mix")
             .inlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { self.dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    if self.isSaving {
+                    if self.model.isSaving {
                         ProgressView()
                     } else {
                         Button("Save") { Task { await self.save(thenPlay: false) } }
-                            .disabled(self.mix.artists.isEmpty)
+                            .disabled(self.model.mix.artists.isEmpty)
                     }
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                if self.query.isEmpty {
+                if self.model.query.isEmpty {
                     Button {
                         Task { await self.save(thenPlay: true) }
                     } label: {
-                        if self.isSaving {
+                        if self.model.isSaving {
                             ProgressView().tint(.white)
                         } else {
-                            Label(self.isNew ? "Create and Play" : "Save and Play", systemImage: "play.fill")
+                            Label(self.model.isNew ? "Create and Play" : "Save and Play", systemImage: "play.fill")
                         }
                     }
                     .buttonStyle(PrimaryActionButtonStyle())
-                    .disabled(self.mix.artists.isEmpty || self.isSaving)
-                    .opacity(self.mix.artists.isEmpty ? 0.5 : 1)
+                    .disabled(!self.model.canSave)
+                    .opacity(self.model.mix.artists.isEmpty ? 0.5 : 1)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
                     .background(.bar)
                 }
             }
-            .confirmationDialog("Delete this mix?", isPresented: self.$isConfirmingDelete, titleVisibility: .visible) {
-                Button("Delete Mix", role: .destructive) {
-                    Task {
-                        do {
-                            try await self.environment.mixes.delete(self.mix, environment: self.environment)
-                            self.dismiss()
-                        } catch {
-                            self.failureMessage = error.localizedDescription
-                        }
-                    }
-                }
-            } message: {
-                Text("The playlist is deleted from your YouTube Music account.")
-            }
-            .alert("Mix", isPresented: Binding(
-                get: { self.failureMessage != nil },
-                set: { if !$0 { self.failureMessage = nil } }
-            )) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(self.failureMessage ?? "")
-            }
-            .interactiveDismissDisabled(self.isSaving)
+            .mixEditorDialogs(model: self.model) { self.dismiss() }
+            .interactiveDismissDisabled(self.model.isSaving)
             .task {
-                await self.loadArtistPhotos()
-                await self.loadSuggestions()
+                await self.model.loadArtistPhotos(environment: self.environment)
+                await self.model.loadSuggestions(environment: self.environment)
             }
-            .task(id: self.query) { await self.search() }
+            .task(id: self.model.query) { await self.model.search(environment: self.environment) }
         }
-        .macSheetFrame(width: 560, height: 720)
+    }
+
+    private func save(thenPlay: Bool) async {
+        guard let saved = await self.model.save(environment: self.environment) else { return }
+        self.dismiss()
+        if thenPlay { self.environment.mixes.play(saved, environment: self.environment) }
     }
 
     // MARK: - Sections
 
     private var nameSection: some View {
         Section("Name") {
-            TextField(
-                ArtistMix.defaultName(for: self.mix.artists).isEmpty ? String(localized: "My mix") : ArtistMix.defaultName(for: self.mix.artists),
-                text: self.$mix.name
-            )
+            TextField(self.model.namePlaceholder, text: self.$model.mix.name)
         }
     }
 
     @ViewBuilder
     private var artistsSection: some View {
         Section {
-            if self.mix.artists.isEmpty {
+            if self.model.mix.artists.isEmpty {
                 Text("Add artists from the suggestions or search for them.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            ForEach(self.mix.artists) { artist in
-                MixArtistRow(artist: artist, isSelected: true) { self.toggle(artist) }
+            ForEach(self.model.mix.artists) { artist in
+                MixArtistRow(artist: artist, isSelected: true) { self.model.toggle(artist) }
             }
-            .onDelete { self.mix.artists.remove(atOffsets: $0) }
+            .onDelete { self.model.removeArtists(atOffsets: $0) }
         } header: {
-            Text("Artists (\(self.mix.artists.count))")
+            Text("Artists (\(self.model.mix.artists.count))")
         }
     }
 
     @ViewBuilder
     private var suggestionsSection: some View {
         // Picked artists stay in place with a checkmark (the selection is the section above).
-        if !self.suggestions.isEmpty {
+        if !self.model.suggestions.isEmpty {
             Section {
-                ForEach(self.suggestions) { artist in
-                    MixArtistRow(artist: artist, isSelected: self.mix.artists.contains { $0.id == artist.id }) {
-                        self.toggle(artist)
+                ForEach(self.model.suggestions) { artist in
+                    MixArtistRow(artist: artist, isSelected: self.model.isSelected(artist)) {
+                        self.model.toggle(artist)
                     }
                 }
             } header: {
@@ -162,18 +139,18 @@ struct MixEditorView: View {
 
     private var optionsSection: some View {
         Section {
-            Picker("Length", selection: self.$mix.length) {
+            Picker("Length", selection: self.$model.mix.length) {
                 ForEach(ArtistMix.Length.allCases) { length in
                     Text("\(length.trackCount) songs").tag(length)
                 }
             }
-            Toggle("Include similar artists", isOn: self.$mix.includesSimilarArtists)
+            Toggle("Include similar artists", isOn: self.$model.mix.includesSimilarArtists)
             VStack(alignment: .leading, spacing: 4) {
                 LabeledContent("Discoveries") {
-                    Text(self.mix.discoveryPercent, format: .percent)
+                    Text(self.model.mix.discoveryPercent, format: .percent)
                         .monospacedDigit()
                 }
-                Slider(value: self.discoveryShare, in: 0 ... 1, step: 0.1) {
+                Slider(value: self.$model.discoveryShare, in: 0 ... 1, step: 0.1) {
                     Text("Discoveries")
                 } minimumValueLabel: {
                     Text(0, format: .percent)
@@ -181,9 +158,9 @@ struct MixEditorView: View {
                     Text(100, format: .percent)
                 }
                 .tint(Color.brand)
-                .accessibilityValue(Text(self.mix.discoveryPercent, format: .percent))
+                .accessibilityValue(Text(self.model.mix.discoveryPercent, format: .percent))
             }
-            Toggle("Skip recently played", isOn: self.$mix.skipsRecentlyPlayed)
+            Toggle("Skip recently played", isOn: self.$model.mix.skipsRecentlyPlayed)
         } header: {
             Text("Options")
         } footer: {
@@ -191,111 +168,22 @@ struct MixEditorView: View {
         }
     }
 
-    /// The slider works in 0–1; the mix stores whole percents.
-    private var discoveryShare: Binding<Double> {
-        Binding(
-            get: { Double(self.mix.discoveryPercent) / 100 },
-            set: { self.mix.discoveryPercent = Int(($0 * 100).rounded()) }
-        )
-    }
-
     @ViewBuilder
     private var resultsSection: some View {
-        if self.isSearching, self.results.isEmpty {
+        if self.model.isSearching, self.model.results.isEmpty {
             ProgressView().frame(maxWidth: .infinity)
-        } else if self.results.isEmpty {
-            ContentUnavailableView.search(text: self.query)
+        } else if self.model.results.isEmpty {
+            ContentUnavailableView.search(text: self.model.query)
         } else {
             Section("Artists") {
-                ForEach(self.results) { artist in
+                ForEach(self.model.results) { artist in
                     let mixArtist = MixArtist(artist)
-                    MixArtistRow(artist: mixArtist, isSelected: self.mix.artists.contains { $0.id == mixArtist.id }) {
-                        self.toggle(mixArtist)
+                    MixArtistRow(artist: mixArtist, isSelected: self.model.isSelected(mixArtist)) {
+                        self.model.toggle(mixArtist)
                     }
                 }
             }
         }
-    }
-
-    // MARK: - Actions
-
-    private func toggle(_ artist: MixArtist) {
-        Haptics.tap()
-        if let index = self.mix.artists.firstIndex(where: { $0.id == artist.id }) {
-            self.mix.artists.remove(at: index)
-        } else {
-            self.mix.artists.append(artist)
-        }
-    }
-
-    /// Creates the playlist (new mix) or applies the changes, then optionally plays it.
-    private func save(thenPlay: Bool) async {
-        self.isSaving = true
-        defer { self.isSaving = false }
-        let library = self.environment.mixes
-        do {
-            var saved = self.mix
-            if let original = self.original {
-                try await library.update(self.mix, from: original, environment: self.environment)
-            } else {
-                saved = try await library.create(self.mix, environment: self.environment)
-            }
-            self.dismiss()
-            if thenPlay { library.play(saved, environment: self.environment) }
-        } catch {
-            self.failureMessage = error.localizedDescription
-        }
-    }
-
-    /// Mixes read back from a playlist description have names but no photos.
-    private func loadArtistPhotos() async {
-        for (index, artist) in self.mix.artists.enumerated() where artist.thumbnailURL == nil {
-            guard let detail = try? await self.environment.client.getArtist(id: artist.id),
-                  let url = detail.thumbnailURL ?? detail.artist.thumbnailURL,
-                  self.mix.artists.indices.contains(index), self.mix.artists[index].id == artist.id
-            else { continue }
-            self.mix.artists[index] = MixArtist(id: artist.id, name: artist.name, thumbnailURL: url)
-        }
-    }
-
-    private func search() async {
-        let text = self.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else {
-            self.results = []
-            return
-        }
-        try? await Task.sleep(for: .milliseconds(300))
-        guard !Task.isCancelled else { return }
-        self.isSearching = true
-        defer { self.isSearching = false }
-        let response = try? await self.environment.client.search(query: text, filter: .artists)
-        guard !Task.isCancelled else { return }
-        self.results = (response?.artists ?? []).filter(\.hasNavigableId)
-    }
-
-    /// Most frequent artists of the recent history first, then followed artists.
-    private func loadSuggestions() async {
-        guard self.environment.auth.state == .signedIn else { return }
-        let history = await ArtistMixBuilder(client: self.environment.client).recentHistorySongs()
-        var counts: [String: (artist: MixArtist, count: Int)] = [:]
-        for song in history {
-            for artist in song.artists where artist.hasNavigableId {
-                let mixArtist = MixArtist(artist)
-                counts[mixArtist.id, default: (mixArtist, 0)].count += 1
-            }
-        }
-        let fromHistory = counts.values.sorted { $0.count > $1.count }.map(\.artist)
-        let followed = ((try? await self.environment.client.getLibraryContent())?.artists ?? [])
-            .filter(\.hasNavigableId).map(MixArtist.init)
-
-        var seen = Set<String>()
-        var merged: [MixArtist] = []
-        for artist in fromHistory + followed where seen.insert(artist.id).inserted {
-            // History entries often lack a photo; prefer the followed artist's.
-            let photo = artist.thumbnailURL ?? followed.first { $0.id == artist.id }?.thumbnailURL
-            merged.append(MixArtist(id: artist.id, name: artist.name, thumbnailURL: photo))
-        }
-        self.suggestions = Array(merged.prefix(30))
     }
 }
 
@@ -324,5 +212,40 @@ private struct MixArtistRow: View {
         .buttonStyle(.plain)
         .accessibilityAddTraits(self.isSelected ? .isSelected : [])
         .accessibilityHint(self.isSelected ? "Removes the artist from the mix" : "Adds the artist to the mix")
+    }
+}
+#endif
+
+extension View {
+    /// The delete confirmation and the failure alert, shared by both editor layouts.
+    func mixEditorDialogs(model: MixEditorModel, onDeleted: @escaping () -> Void) -> some View {
+        self.modifier(MixEditorDialogs(model: model, onDeleted: onDeleted))
+    }
+}
+
+private struct MixEditorDialogs: ViewModifier {
+    @Environment(AppEnvironment.self) private var environment
+    @Bindable var model: MixEditorModel
+    let onDeleted: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .confirmationDialog("Delete this mix?", isPresented: self.$model.isConfirmingDelete, titleVisibility: .visible) {
+                Button("Delete Mix", role: .destructive) {
+                    Task {
+                        if await self.model.delete(environment: self.environment) { self.onDeleted() }
+                    }
+                }
+            } message: {
+                Text("The playlist is deleted from your YouTube Music account.")
+            }
+            .alert("Mix", isPresented: Binding(
+                get: { self.model.failureMessage != nil },
+                set: { if !$0 { self.model.failureMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(self.model.failureMessage ?? "")
+            }
     }
 }
