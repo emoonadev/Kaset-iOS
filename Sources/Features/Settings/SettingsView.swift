@@ -1,117 +1,138 @@
 import SwiftUI
 
-/// Account, playback and content preferences. Debug tools live in `DeveloperSettingsView`.
+/// Account, playback and content preferences, as one scrolling form in a sheet on iOS. The
+/// sections are separate views so the macOS Settings window (`MacSettingsView`) can lay them
+/// out in tabs. Debug tools live in `DeveloperSettingsView`.
 struct SettingsView: View {
-    @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
 
+    var body: some View {
+        NavigationStack {
+            Form {
+                AccountSettingsSections { self.dismiss() }
+                PlaybackSettingsSections()
+                #if os(macOS)
+                TrackNotificationsSettingsSection()
+                #endif
+                NewReleasesSettingsSection()
+                RecapSettingsSection()
+                ContentLanguageSettingsSection()
+                DeveloperSettingsLinkSection()
+            }
+            .navigationTitle("Settings")
+            .toolbar { SheetCloseButton { self.dismiss() } }
+            #if os(macOS)
+            .formStyle(.grouped)
+            #endif
+        }
+    }
+}
+
+// MARK: - Playback
+
+/// Audio quality, ads, data saver and the bad-network options.
+struct PlaybackSettingsSections: View {
+    @Environment(AppEnvironment.self) private var environment
+
     @AppStorage(PlaybackAudioQuality.storageKey) private var audioQuality = PlaybackAudioQuality.auto.rawValue
-    @AppStorage(ContentLanguage.storageKey) private var language = ContentLanguage.system.rawValue
     @AppStorage(Haptics.storageKey) private var haptics = true
     @AppStorage(AdSkip.storageKey) private var adAutoSkip = false
     @AppStorage(DataSaver.storageKey) private var dataSaver = true
     @AppStorage(BufferPolicy.adaptiveQualityStorageKey) private var adaptiveQuality = true
     @AppStorage(BufferPolicy.extendedStorageKey) private var extendedBuffer = false
-    @AppStorage(NewReleaseWatcher.notificationsStorageKey) private var newReleaseNotifications = true
-    #if os(macOS)
-    @AppStorage(TrackChangeNotifier.storageKey) private var trackChangeNotifications = true
-    #endif
-
-    @State private var accounts: [UserAccount] = []
-    @State private var isSwitching = false
-    @State private var isPickingSyncFolder = false
 
     var body: some View {
-        NavigationStack {
-            Form {
-                self.accountSection
-
-                Section {
-                    Picker("Audio quality", selection: self.$audioQuality) {
-                        ForEach(PlaybackAudioQuality.allCases) { Text($0.displayName).tag($0.rawValue) }
-                    }
-                    .onChange(of: self.audioQuality) { _, _ in self.environment.player.applyAudioQuality() }
-                    #if os(iOS)
-                    Toggle("Haptic feedback", isOn: self.$haptics)
-                    #endif
-                    Toggle("Skip ads automatically", isOn: self.$adAutoSkip)
-                } header: {
-                    Text("Playback")
-                } footer: {
-                    Text("Skipping ads is an opt-in and may go against YouTube's terms of service.")
-                }
-                .onChange(of: self.adAutoSkip) { _, _ in self.environment.player.applyAdSkipSetting() }
-
-                #if os(macOS)
-                self.trackNotificationsSection
-                #endif
-
-                Section {
-                    Toggle("Save data on music videos", isOn: self.$dataSaver)
-                        .onChange(of: self.dataSaver) { _, _ in self.environment.player.applyDataSaverSetting() }
-                } footer: {
-                    Text("Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data.")
-                }
-
-                Section {
-                    Toggle("Lower quality on a weak network", isOn: self.$adaptiveQuality)
-                        .onChange(of: self.adaptiveQuality) { _, _ in self.environment.player.applyAudioQuality() }
-                    Toggle("Longer buffer (experimental)", isOn: self.$extendedBuffer)
-                        .onChange(of: self.extendedBuffer) { _, _ in self.environment.player.applyBufferSetting() }
-                } header: {
-                    Text("Bad network")
-                } footer: {
-                    Text("Low quality is used after the music cut out for lack of data, or in Low Data Mode, until you are back on Wi-Fi. The longer buffer asks the page to load up to 4 minutes of the current song ahead; it fully applies after relaunching the app.")
-                }
-
-                self.newReleasesSection
-
-                self.recapSection
-
-                Section {
-                    Picker("Content language", selection: self.$language) {
-                        ForEach(ContentLanguage.allCases) { Text($0.displayName).tag($0.rawValue) }
-                    }
-                    .onChange(of: self.language) { _, _ in
-                        self.environment.client.resetSessionState()
-                    }
-                } footer: {
-                    Text("Changes the language of titles and shelves returned by YouTube Music.")
-                }
-
-                Section {
-                    NavigationLink {
-                        DeveloperSettingsView()
-                    } label: {
-                        let failing = self.environment.player.healthReport?.failing.count ?? 0
-                        LabeledContent("Developer") {
-                            if failing > 0 {
-                                Text("\(failing) failing").foregroundStyle(.red)
-                            }
-                        }
-                    }
-                } footer: {
-                    Text("Debug tools and diagnostics. You don't need these for everyday use.")
-                }
+        Section {
+            Picker("Audio quality", selection: self.$audioQuality) {
+                ForEach(PlaybackAudioQuality.allCases) { Text($0.displayName).tag($0.rawValue) }
             }
-            .navigationTitle("Settings")
+            .onChange(of: self.audioQuality) { _, _ in self.environment.player.applyAudioQuality() }
             #if os(iOS)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { self.dismiss() } }
-            }
-            #else
-            .formStyle(.grouped)
+            Toggle("Haptic feedback", isOn: self.$haptics)
             #endif
-            .task(id: AccountsLoadKey(state: self.environment.auth.state, revision: self.environment.accountRevision)) {
-                await self.loadAccounts()
-            }
+            Toggle("Skip ads automatically", isOn: self.$adAutoSkip)
+        } header: {
+            Text("Playback")
+        } footer: {
+            Text("Skipping ads is an opt-in and may go against YouTube's terms of service.")
+        }
+        .onChange(of: self.adAutoSkip) { _, _ in self.environment.player.applyAdSkipSetting() }
+
+        Section {
+            Toggle("Save data on music videos", isOn: self.$dataSaver)
+                .onChange(of: self.dataSaver) { _, _ in self.environment.player.applyDataSaverSetting() }
+        } footer: {
+            Text("Music videos play as their song version when YouTube Music has one (Premium), which can differ slightly from the video; other videos load at the lowest quality. The app never shows the video, so this only saves data.")
+        }
+
+        Section {
+            Toggle("Lower quality on a weak network", isOn: self.$adaptiveQuality)
+                .onChange(of: self.adaptiveQuality) { _, _ in self.environment.player.applyAudioQuality() }
+            Toggle("Longer buffer (experimental)", isOn: self.$extendedBuffer)
+                .onChange(of: self.extendedBuffer) { _, _ in self.environment.player.applyBufferSetting() }
+        } header: {
+            Text("Bad network")
+        } footer: {
+            Text("Low quality is used after the music cut out for lack of data, or in Low Data Mode, until you are back on Wi-Fi. The longer buffer asks the page to load up to 4 minutes of the current song ahead; it fully applies after relaunching the app.")
         }
     }
+}
 
-    #if os(macOS)
-    private var trackNotificationsSection: some View {
+// MARK: - Content language
+
+struct ContentLanguageSettingsSection: View {
+    @Environment(AppEnvironment.self) private var environment
+    @AppStorage(ContentLanguage.storageKey) private var language = ContentLanguage.system.rawValue
+
+    var body: some View {
+        Section {
+            Picker("Content language", selection: self.$language) {
+                ForEach(ContentLanguage.allCases) { Text($0.displayName).tag($0.rawValue) }
+            }
+            .onChange(of: self.language) { _, _ in
+                self.environment.client.resetSessionState()
+            }
+        } footer: {
+            Text("Changes the language of titles and shelves returned by YouTube Music.")
+        }
+    }
+}
+
+// MARK: - Developer
+
+/// Link to the developer tools, with the number of failing player checks.
+struct DeveloperSettingsLinkSection: View {
+    @Environment(AppEnvironment.self) private var environment
+
+    var body: some View {
+        Section {
+            NavigationLink {
+                DeveloperSettingsView()
+            } label: {
+                let failing = self.environment.player.healthReport?.failing.count ?? 0
+                LabeledContent("Developer") {
+                    if failing > 0 {
+                        Text("\(failing) failing").foregroundStyle(.red)
+                    }
+                }
+            }
+        } footer: {
+            Text("Debug tools and diagnostics. You don't need these for everyday use.")
+        }
+    }
+}
+
+// MARK: - Notifications
+
+#if os(macOS)
+/// macOS only: the song-change notification (iOS shows the song on the Lock Screen instead).
+struct TrackNotificationsSettingsSection: View {
+    @Environment(AppEnvironment.self) private var environment
+    @AppStorage(TrackChangeNotifier.storageKey) private var trackChangeNotifications = true
+
+    var body: some View {
         let notifier = self.environment.trackNotifier
-        return Section {
+        Section {
             Toggle("Notify on song change", isOn: self.$trackChangeNotifications)
                 .onChange(of: self.trackChangeNotifications) { _, isOn in
                     guard isOn else { return }
@@ -132,11 +153,18 @@ struct SettingsView: View {
         }
         .task { await notifier.refreshAuthorization() }
     }
-    #endif
+}
+#endif
 
-    private var newReleasesSection: some View {
+// MARK: - New releases
+
+struct NewReleasesSettingsSection: View {
+    @Environment(AppEnvironment.self) private var environment
+    @AppStorage(NewReleaseWatcher.notificationsStorageKey) private var newReleaseNotifications = true
+
+    var body: some View {
         let watcher = self.environment.newReleases
-        return Section {
+        Section {
             Toggle("Notify me at 8:00", isOn: self.$newReleaseNotifications)
                 .onChange(of: self.newReleaseNotifications) { _, isOn in
                     guard isOn else { return }
@@ -149,7 +177,7 @@ struct SettingsView: View {
             } label: {
                 LabeledContent("Check now") {
                     if watcher.isChecking {
-                        ProgressView()
+                        ProgressView().controlSize(.small)
                     } else if let last = watcher.state.lastCheck {
                         Text(last, format: .relative(presentation: .named))
                     }
@@ -168,13 +196,24 @@ struct SettingsView: View {
         } header: {
             Text("New releases")
         } footer: {
+            #if os(iOS)
             Text("Albums and singles from the artists you follow and play the most show up on Home. The check runs each morning when iOS allows it (Background App Refresh must be on), otherwise when you open the app.")
+            #else
+            Text("Albums and singles from the artists you follow and play the most show up on Home. The check runs once a day, when Spool is open.")
+            #endif
         }
     }
+}
 
-    private var recapSection: some View {
+// MARK: - Listening recap
+
+struct RecapSettingsSection: View {
+    @Environment(AppEnvironment.self) private var environment
+    @State private var isPickingSyncFolder = false
+
+    var body: some View {
         let listening = self.environment.listening
-        return Section {
+        Section {
             if let folder = listening.syncFolderName {
                 LabeledContent("Sync folder", value: folder)
                 Button {
@@ -182,7 +221,7 @@ struct SettingsView: View {
                 } label: {
                     LabeledContent("Sync now") {
                         if listening.isSyncing {
-                            ProgressView()
+                            ProgressView().controlSize(.small)
                         } else if let last = listening.lastSync {
                             Text(last, format: .relative(presentation: .named))
                         }
@@ -215,9 +254,20 @@ struct SettingsView: View {
             Task { await listening.setSyncFolder(folder) }
         }
     }
+}
 
-    @ViewBuilder
-    private var accountSection: some View {
+// MARK: - Accounts
+
+/// Google accounts, the YouTube channel of the active one, and sign out. `close` dismisses the
+/// settings before a sign-in sheet is shown over the app.
+struct AccountSettingsSections: View {
+    @Environment(AppEnvironment.self) private var environment
+    let close: () -> Void
+
+    @State private var accounts: [UserAccount] = []
+    @State private var isSwitching = false
+
+    var body: some View {
         let registry = self.environment.accounts
         Section {
             if self.environment.auth.state == .unknown {
@@ -227,7 +277,7 @@ struct SettingsView: View {
                 Button {
                     let isActive = account.id == registry.activeID
                     if isActive, self.environment.auth.state == .signedOut {
-                        self.dismiss()
+                        self.close()
                         self.environment.signInAgain()
                         return
                     }
@@ -244,11 +294,11 @@ struct SettingsView: View {
                         isExpired: account.id == registry.activeID && self.environment.auth.state == .signedOut
                     )
                 }
-                .foregroundStyle(.primary)
+                .buttonStyle(.plain)
                 .disabled(self.isSwitching)
             }
             Button(registry.accounts.isEmpty ? "Sign in" : "Add account", systemImage: "plus.circle") {
-                self.dismiss()
+                self.close()
                 self.environment.addAccount()
             }
             .disabled(self.isSwitching)
@@ -258,6 +308,9 @@ struct SettingsView: View {
             if registry.accounts.count > 1 {
                 Text("Each account keeps its own session, library and history. Playback stops when you switch.")
             }
+        }
+        .task(id: AccountsLoadKey(state: self.environment.auth.state, revision: self.environment.accountRevision)) {
+            await self.loadAccounts()
         }
 
         if self.environment.auth.state == .signedIn, self.accounts.count > 1 {
@@ -281,8 +334,9 @@ struct SettingsView: View {
                             Spacer()
                             if account.isSelected { Image(systemName: "checkmark") }
                         }
+                        .contentShape(Rectangle())
                     }
-                    .foregroundStyle(.primary)
+                    .buttonStyle(.plain)
                     .disabled(self.isSwitching)
                 }
             }
@@ -295,7 +349,7 @@ struct SettingsView: View {
                         self.isSwitching = true
                         await self.environment.signOut()
                         self.isSwitching = false
-                        if self.environment.accounts.accounts.isEmpty { self.dismiss() }
+                        if self.environment.accounts.accounts.isEmpty { self.close() }
                     }
                 } label: {
                     if let name = active.name {
@@ -343,7 +397,7 @@ private struct AccountRow: View {
             VStack(alignment: .leading) {
                 Text(self.account.name ?? String(localized: "Google account"))
                 if self.isExpired {
-                    Text("Signed out. Tap to sign in again.").font(.caption).foregroundStyle(.red)
+                    Text(Platform.isMac ? "Signed out. Click to sign in again." : "Signed out. Tap to sign in again.").font(.caption).foregroundStyle(.red)
                 } else if let detail = self.account.email ?? self.account.handle {
                     Text(detail).font(.caption).foregroundStyle(.secondary)
                 }
@@ -351,5 +405,6 @@ private struct AccountRow: View {
             Spacer()
             if self.isActive { Image(systemName: "checkmark") }
         }
+        .contentShape(Rectangle())
     }
 }
