@@ -2,7 +2,8 @@ name: Release
 
 # Cuts a new version on every push to main (docs-only changes excepted):
 # computes vX.Y.Z, builds the macOS app (KasetMac scheme -> Spool.app),
-# packages it as a DMG and a zip, then creates the tag and GitHub Release.
+# packages it as a DMG and a zip, builds an unsigned iOS .ipa for sideloading, then creates the
+# tag and GitHub Release.
 on:
   push:
     branches: [main]
@@ -112,6 +113,37 @@ jobs:
           ditto -c -k --keepParent "$APP" "$DIST/Spool-$VERSION-macOS.zip"
           ls -lh "$DIST"
 
+      # An unsigned .ipa for people who do not have Xcode. Sideloading tools (AltStore, SideStore,
+      # Sideloadly) re-sign it with the user's own Apple ID when they install it, so no signing
+      # identity or secret is needed here.
+      - name: Build unsigned iOS .ipa
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+        run: |
+          set -euo pipefail
+          xcodebuild build \
+            -project KasetiOS.xcodeproj \
+            -scheme KasetiOS \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY= \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD" \
+            | tail -n 50
+
+          APP=$(find "$DERIVED_DATA/Build/Products/Release-iphoneos" -maxdepth 1 -name '*.app' | head -1)
+          test -d "$APP" || { echo "iOS .app not found" >&2; exit 1; }
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Info.plist"
+
+          rm -rf build/ipa-staging && mkdir -p build/ipa-staging/Payload "$DIST"
+          ditto "$APP" "build/ipa-staging/Payload/$(basename "$APP")"
+          (cd build/ipa-staging && zip -qry "$GITHUB_WORKSPACE/$DIST/Spool-$VERSION-iOS.ipa" Payload)
+          ls -lh "$DIST"
+
       - name: Upload artifacts (dry run)
         if: ${{ inputs.dry_run }}
         uses: actions/upload-artifact@v4
@@ -120,6 +152,7 @@ jobs:
           path: |
             build/dist/*.dmg
             build/dist/*.zip
+            build/dist/*.ipa
 
       - name: Create tag and GitHub Release
         if: ${{ !inputs.dry_run && steps.version.outputs.existing == '' }}
@@ -130,6 +163,15 @@ jobs:
         run: |
           set -euo pipefail
           cat > "$RUNNER_TEMP/notes.md" <<'EOF'
+          ## Install on iPhone or iPad (no Xcode needed)
+
+          Download `Spool-<version>-iOS.ipa` and install it with a sideloading app such as
+          [Sideloadly](https://sideloadly.io), [AltStore](https://altstore.io) or
+          [SideStore](https://sidestore.io). The file is unsigned on purpose: the tool signs it with
+          your own Apple ID. Step by step guide: [Install on iPhone without Xcode](https://github.com/${{ github.repository }}#install-on-iphone-without-xcode).
+
+          Requires iOS 26. A free Apple ID works, but the app must be refreshed every 7 days.
+
           ## Install on macOS
 
           Spool is ad-hoc signed and **not notarized** yet, so Gatekeeper will block the first launch.
@@ -146,6 +188,7 @@ jobs:
           gh release create "$TAG" \
             "$DIST/Spool-$VERSION.dmg" \
             "$DIST/Spool-$VERSION-macOS.zip" \
+            "$DIST/Spool-$VERSION-iOS.ipa" \
             --target "$GITHUB_SHA" \
             --title "Spool $VERSION" \
             --notes-file "$RUNNER_TEMP/notes.md" \
