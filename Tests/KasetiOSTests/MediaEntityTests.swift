@@ -174,6 +174,10 @@ struct NowPlayingIndicatorTests {
     @Test func searchFiltersCarryTheirParams() {
         #expect(SearchFilter.all.params == nil)
         #expect(SearchFilter.songs.params == "EgWKAQIIAWoMEA4QChADEAQQCRAF")
-        #expect(Set(SearchFilter.allCases.compactMap(\.params)).count == 5)
+        #expect(SearchFilter.podcasts.params == "EgWKAQJQAWoQEBAQCRAEEAMQBRAKEBUQEQ%3D%3D")
+        #expect(SearchFilter.episodes.params == "EgWKAQJIAWoMEA4QChADEAQQCRAF")
+        // Every kind but "All" has its own params (songs, videos, albums, artists, playlists,
+        // podcasts, episodes).
+        #expect(Set(SearchFilter.allCases.compactMap(\.params)).count == 7)
     }
 }
