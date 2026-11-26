@@ -25,9 +25,9 @@ final class BrowsePageModel {
 
     /// Browse ids of the shortcut buttons YouTube Music puts on its Explore page. They point at
     /// surfaces that already are Discover segments (Podcasts included), so they are dropped here.
-    private static let shortcutBrowseIds: Set<String> = [
+    private static let shortcutBrowseIds = Set([
         "FEmusic_moods_and_genres", "FEmusic_charts", "FEmusic_new_releases", "FEmusic_explore",
-    ].union(PodcastParser.knownDiscoveryBrowseIds)
+    ]).union(PodcastParser.knownDiscoveryBrowseIds)
 
     /// Explore repeats the chart shelves that already have their own Discover segment.
     private func filtered(_ sections: [HomeSection]) -> [HomeSection] {
