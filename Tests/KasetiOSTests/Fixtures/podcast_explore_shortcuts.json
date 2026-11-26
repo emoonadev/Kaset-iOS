@@ -1,0 +1,88 @@
+{
+  "contents": {
+    "singleColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "gridRenderer": {
+                      "items": [
+                        {
+                          "musicNavigationButtonRenderer": {
+                            "buttonText": {
+                              "runs": [
+                                {
+                                  "text": "New releases"
+                                }
+                              ]
+                            },
+                            "clickCommand": {
+                              "browseEndpoint": {
+                                "browseId": "FEmusic_new_releases"
+                              }
+                            },
+                            "iconStyle": {
+                              "icon": {
+                                "iconType": "NEW_RELEASE"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "musicNavigationButtonRenderer": {
+                            "buttonText": {
+                              "runs": [
+                                {
+                                  "text": "Charts"
+                                }
+                              ]
+                            },
+                            "clickCommand": {
+                              "browseEndpoint": {
+                                "browseId": "FEmusic_charts",
+                                "params": "fixture-params"
+                              }
+                            },
+                            "iconStyle": {
+                              "icon": {
+                                "iconType": "TRENDING_UP"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "musicNavigationButtonRenderer": {
+                            "buttonText": {
+                              "runs": [
+                                {
+                                  "text": "Podcasts"
+                                }
+                              ]
+                            },
+                            "clickCommand": {
+                              "browseEndpoint": {
+                                "browseId": "FEmusic_non_music_audio"
+                              }
+                            },
+                            "iconStyle": {
+                              "icon": {
+                                "iconType": "BROADCAST"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

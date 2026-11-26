@@ -3,12 +3,13 @@ import Observation
 
 /// Whether YouTube Music offers the Podcasts discovery page to this account.
 ///
-/// The page is not offered in every region: there, `FEmusic_podcasts` answers HTTP 404 and the
-/// web client hides it. The region comes from YouTube (cookies, IP), not from the app, so the
-/// page is probed once per account and launch, and the Podcasts entry (Discover segment on
-/// iOS, sidebar row on macOS) is hidden after a 404. Search, artist pages and the library show
-/// podcasts through other endpoints and stay available everywhere. Nothing is persisted: a
-/// region change (VPN) is picked up at the next launch. Same approach as kaset (ADR-0019).
+/// The page is not offered in every region: there it answers HTTP 404 (and the web client
+/// redirects `/podcasts` to Home). The region comes from YouTube (cookies, IP), not from the
+/// app, so the page is probed once per account and launch, and the Podcasts entry (Discover
+/// segment on iOS, sidebar row on macOS) is hidden only when every known id of the page
+/// answers 404. Search, artist pages and the library show podcasts through other endpoints and
+/// stay available everywhere. Nothing is persisted: a region change (VPN) is picked up at the
+/// next launch. Same approach as kaset (ADR-0019).
 @MainActor
 @Observable
 final class PodcastsAvailability {
@@ -32,10 +33,9 @@ final class PodcastsAvailability {
         let generation = self.generation
         do {
             // Warms the cache, so opening Podcasts right after is instant.
-            let page = try await client.getPodcasts()
+            _ = try await client.getPodcasts()
             guard generation == self.generation else { return }
-            // An empty page from a background probe is noise (cold cache, transient issue).
-            if !page.sections.isEmpty { self.state = .available }
+            self.state = .available
         } catch {
             guard generation == self.generation else { return }
             if Self.isRegionUnavailable(error) {
@@ -45,11 +45,6 @@ final class PodcastsAvailability {
                 self.probedScope = nil
             }
         }
-    }
-
-    /// Result of a load the user started on the Podcasts page.
-    func record(sections: [PodcastSection]) {
-        self.state = sections.isEmpty ? .unavailable : .available
     }
 
     func record(_ error: Error) {

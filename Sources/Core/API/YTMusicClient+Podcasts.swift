@@ -3,12 +3,33 @@ import Foundation
 // MARK: - Podcasts
 
 extension YTMusicClient {
-    /// Discovery page (`FEmusic_podcasts`). Answers HTTP 404 in regions without podcasts.
-    func getPodcasts(forceRefresh: Bool = false) async throws -> PodcastParser.DiscoveryPage {
+    /// Where Explore's "Podcasts" shortcut points, if it has one. Shares Explore's cached response.
+    func podcastsEndpoint(forceRefresh: Bool = false) async throws -> PodcastParser.Endpoint? {
         let data = try await self.request(
-            "browse", body: ["browseId": Self.podcastsBrowseId], ttl: APICache.TTL.home, bypassCache: forceRefresh
+            "browse", body: ["browseId": PaginatedContentType.explore.rawValue],
+            ttl: APICache.TTL.home, bypassCache: forceRefresh
         )
-        return PodcastParser.parseDiscovery(data)
+        return PodcastParser.discoveryEndpoint(inExplore: data)
+    }
+
+    /// The Podcasts discovery page. Each known id is tried in turn (Explore's shortcut first):
+    /// YouTube Music moved the page once already. Throws the 404 when none exists, which is
+    /// what happens where podcasts are not offered.
+    func getPodcasts(forceRefresh: Bool = false) async throws -> PodcastParser.DiscoveryPage {
+        let shortcut = try? await self.podcastsEndpoint()
+        var lastNotFound: Error?
+        for target in PodcastParser.discoveryCandidates(shortcut: shortcut) {
+            var body: [String: Any] = ["browseId": target.browseId]
+            if let params = target.params { body["params"] = params }
+            do {
+                let data = try await self.request("browse", body: body, ttl: APICache.TTL.home, bypassCache: forceRefresh)
+                return PodcastParser.parseDiscovery(data)
+            } catch let error as YTMusicError {
+                guard case let .apiError(_, code) = error, code == 404 else { throw error }
+                lastNotFound = error
+            }
+        }
+        throw lastNotFound ?? YTMusicError.apiError(message: "HTTP 404", code: 404)
     }
 
     func getPodcastsContinuation(token: String) async throws -> PodcastParser.DiscoveryPage {
@@ -37,7 +58,6 @@ extension YTMusicClient {
         }
     }
 
-    nonisolated static let podcastsBrowseId = "FEmusic_podcasts"
     /// The library's podcasts list (saved shows).
     nonisolated static let libraryPodcastsBrowseId = "FEmusic_library_non_music_audio_list"
 }

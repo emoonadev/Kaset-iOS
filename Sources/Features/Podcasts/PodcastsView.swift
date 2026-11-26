@@ -33,7 +33,6 @@ final class PodcastsModel {
             self.sections = page.sections
             self.continuationToken = page.continuationToken
             self.phase = .loaded
-            self.availability.record(sections: page.sections)
         } catch is CancellationError {
             if self.phase == .loading { self.phase = .idle }
         } catch {
@@ -68,6 +67,8 @@ final class PodcastsModel {
 
 /// Shelves of shows and episodes. Shows open their page; episodes play.
 struct PodcastsView: View {
+    @Environment(AppEnvironment.self) private var environment
+
     let model: PodcastsModel
 
     var body: some View {
@@ -77,12 +78,20 @@ struct PodcastsView: View {
         case let .failed(message):
             LoadFailureView(message: message) { Task { await self.model.load(force: true) } }
         case .loaded:
-            if self.model.sections.isEmpty {
+            if self.model.sections.isEmpty, self.environment.podcastsAvailability.isHidden {
                 ContentUnavailableView(
                     "No podcasts here",
                     systemImage: "mic.slash",
                     description: Text("YouTube Music doesn't offer podcasts in your region. Podcasts still appear in search.")
                 )
+            } else if self.model.sections.isEmpty {
+                ContentUnavailableView {
+                    Label("No podcasts to show", systemImage: "mic")
+                } description: {
+                    Text("Search for a show to find podcasts.")
+                } actions: {
+                    Button("Try Again") { Task { await self.model.load(force: true) } }
+                }
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 32) {

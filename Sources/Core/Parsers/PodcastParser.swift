@@ -1,7 +1,9 @@
 import Foundation
 
 // Ported from kaset: Services/API/Parsers/PodcastParser.swift, then checked against live
-// responses (2026-11): on show pages the episode progress and duration sit inside
+// responses (2026-11). Explore's "Podcasts" button now points at `FEmusic_non_music_audio`
+// while kaset still uses `FEmusic_podcasts`; both are tried. On show pages the episode
+// progress and duration sit inside
 // `playbackProgress.musicPlaybackProgressRenderer`, the episode subtitle reads
 // "<views> • <date>", the show's author is the header's `straplineTextOne` and its description
 // is wrapped in a `musicDescriptionShelfRenderer`. The older flat shapes are still read.
@@ -15,6 +17,55 @@ enum PodcastParser {
     struct DiscoveryPage {
         let sections: [PodcastSection]
         let continuationToken: String?
+    }
+
+    // MARK: - Where the discovery page is
+
+    /// Browse endpoint of the Podcasts page.
+    struct Endpoint: Equatable {
+        let browseId: String
+        let params: String?
+    }
+
+    /// Ids the Podcasts page has had, newest first; the Explore button is matched on these or
+    /// on its icon.
+    static let discoveryBrowseIds = ["FEmusic_non_music_audio", "FEmusic_podcasts"]
+    static let knownDiscoveryBrowseIds = Set(discoveryBrowseIds)
+
+    /// Endpoints to try for the Podcasts page: Explore's shortcut, then the known ids.
+    static func discoveryCandidates(shortcut: Endpoint?) -> [Endpoint] {
+        var candidates = shortcut.map { [$0] } ?? []
+        for id in Self.discoveryBrowseIds where !candidates.contains(where: { $0.browseId == id }) {
+            candidates.append(Endpoint(browseId: id, params: nil))
+        }
+        return candidates
+    }
+
+    /// The "Podcasts" shortcut of the Explore page. Not proof that the page exists: Explore
+    /// keeps it in regions where the page answers 404.
+    static func discoveryEndpoint(inExplore data: [String: Any]) -> Endpoint? {
+        var found: Endpoint?
+        Self.visit(data) { node in
+            guard found == nil, let button = node["musicNavigationButtonRenderer"] as? [String: Any],
+                  let command = button["clickCommand"] as? [String: Any],
+                  let browse = command["browseEndpoint"] as? [String: Any],
+                  let browseId = browse["browseId"] as? String
+            else { return }
+            let icon = ((button["iconStyle"] as? [String: Any])?["icon"] as? [String: Any])?["iconType"] as? String
+            if Self.knownDiscoveryBrowseIds.contains(browseId) || icon == "BROADCAST" {
+                found = Endpoint(browseId: browseId, params: browse["params"] as? String)
+            }
+        }
+        return found
+    }
+
+    private static func visit(_ value: Any, _ body: ([String: Any]) -> Void) {
+        if let dictionary = value as? [String: Any] {
+            body(dictionary)
+            for child in dictionary.values { Self.visit(child, body) }
+        } else if let array = value as? [Any] {
+            for child in array { Self.visit(child, body) }
+        }
     }
 
     // MARK: - Discovery
@@ -51,6 +102,11 @@ enum PodcastParser {
         if let shelf = data["musicShelfRenderer"] as? [String: Any] {
             let title = ParsingHelpers.extractTitle(from: shelf) ?? ""
             return Self.makeSection(title: title, contents: shelf["contents"] as? [[String: Any]])
+        }
+        if let grid = data["gridRenderer"] as? [String: Any] {
+            let header = (grid["header"] as? [String: Any])?["gridHeaderRenderer"] as? [String: Any]
+            let title = header.flatMap { ParsingHelpers.extractTitle(from: $0) } ?? ""
+            return Self.makeSection(title: title, contents: grid["items"] as? [[String: Any]])
         }
         if let itemSection = data["itemSectionRenderer"] as? [String: Any],
            let contents = itemSection["contents"] as? [[String: Any]]

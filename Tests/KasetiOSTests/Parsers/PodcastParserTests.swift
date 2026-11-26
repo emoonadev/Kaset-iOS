@@ -135,6 +135,36 @@ struct PodcastParserTests {
         #expect(PodcastParser.parseDiscoveryContinuation([:]).sections.isEmpty)
     }
 
+    // MARK: Where the discovery page is
+
+    @Test("Explore's Podcasts shortcut gives the discovery endpoint")
+    func exploreShortcut() throws {
+        let endpoint = try PodcastParser.discoveryEndpoint(inExplore: Self.fixture("podcast_explore_shortcuts"))
+        #expect(endpoint == PodcastParser.Endpoint(browseId: "FEmusic_non_music_audio", params: nil))
+        #expect(PodcastParser.discoveryEndpoint(inExplore: [:]) == nil)
+    }
+
+    @Test("A renamed page is found by the shortcut's icon")
+    func exploreShortcutByIcon() {
+        let explore: [String: Any] = ["items": [[
+            "musicNavigationButtonRenderer": [
+                "clickCommand": ["browseEndpoint": ["browseId": "FEmusic_renamed", "params": "p"]],
+                "iconStyle": ["icon": ["iconType": "BROADCAST"]],
+            ],
+        ]]]
+        #expect(PodcastParser.discoveryEndpoint(inExplore: explore) == .init(browseId: "FEmusic_renamed", params: "p"))
+    }
+
+    @Test("Candidates: the shortcut first, then every known id once")
+    func discoveryCandidates() {
+        #expect(PodcastParser.discoveryCandidates(shortcut: nil).map(\.browseId) == ["FEmusic_non_music_audio", "FEmusic_podcasts"])
+        let renamed = PodcastParser.Endpoint(browseId: "FEmusic_renamed", params: nil)
+        #expect(PodcastParser.discoveryCandidates(shortcut: renamed).map(\.browseId)
+            == ["FEmusic_renamed", "FEmusic_non_music_audio", "FEmusic_podcasts"])
+        let known = PodcastParser.Endpoint(browseId: "FEmusic_podcasts", params: nil)
+        #expect(PodcastParser.discoveryCandidates(shortcut: known).map(\.browseId) == ["FEmusic_podcasts", "FEmusic_non_music_audio"])
+    }
+
     // MARK: Helpers
 
     @Test("Show ids map to their library playlist")

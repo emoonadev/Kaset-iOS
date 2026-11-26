@@ -1510,6 +1510,16 @@
         }
       }
     },
+    "No podcasts to show" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun podcast à afficher"
+          }
+        }
+      }
+    },
     "No recommendations yet." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2282,6 +2292,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rechercher des artistes"
+          }
+        }
+      }
+    },
+    "Search for a show to find podcasts." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherchez une émission pour trouver des podcasts."
           }
         }
       }
