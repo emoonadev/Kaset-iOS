@@ -18,7 +18,7 @@ struct HomeView: View {
                 }
             }
             .navigationTitle("Home")
-            .entityDestinations()
+            .entityNavigation(path: self.$path)
             .toolbar { SettingsToolbarButton() }
         }
         .onChange(of: NotificationRouter.shared.pendingEntity, initial: true) { _, entity in

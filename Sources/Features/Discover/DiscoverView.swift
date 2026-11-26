@@ -29,9 +29,10 @@ struct DiscoverView: View {
     @State private var models: [Segment: BrowsePageModel] = [:]
     @State private var podcasts: PodcastsModel?
     @State private var visited: Set<Segment> = [.explore]
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: self.$path) {
             VStack(spacing: 0) {
                 Picker("Section", selection: self.$selection) {
                     ForEach(Segment.allCases) { Text($0.rawValue).tag($0) }
@@ -51,7 +52,7 @@ struct DiscoverView: View {
                 }
             }
             .navigationTitle("Discover")
-            .entityDestinations()
+            .entityNavigation(path: self.$path)
             .toolbar { SettingsToolbarButton() }
         }
         .task(id: self.selection) {

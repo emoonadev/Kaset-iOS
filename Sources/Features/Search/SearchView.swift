@@ -189,9 +189,10 @@ final class SearchViewModel {
 struct SearchView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var model: SearchViewModel?
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: self.$path) {
             Group {
                 if let model {
                     SearchContent(model: model)
@@ -200,7 +201,7 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Search")
-            .entityDestinations()
+            .entityNavigation(path: self.$path)
             .toolbar { SettingsToolbarButton() }
         }
         .task {

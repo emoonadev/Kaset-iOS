@@ -128,7 +128,7 @@ private struct MacDetailView: View {
             self.root
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .navigationTitle(Text(self.item.title))
-                .entityDestinations()
+                .entityNavigation(path: self.shell.path(for: self.item))
         }
         // ⌘R rebuilds the stack (the path is kept), so the pages on it load again.
         .id("\(self.item)-\(self.shell.refreshGeneration)")

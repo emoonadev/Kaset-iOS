@@ -409,7 +409,18 @@
                             "subtitle": {
                               "runs": [
                                 {
-                                  "text": "Fixture Network"
+                                  "text": "Fixture Network",
+                                  "navigationEndpoint": {
+                                    "browseEndpoint": {
+                                      "browseId": "UCfixture-channel",
+                                      "params": "fixture-params",
+                                      "browseEndpointContextSupportedConfigs": {
+                                        "browseEndpointContextMusicConfig": {
+                                          "pageType": "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                                        }
+                                      }
+                                    }
+                                  }
                                 }
                               ]
                             },

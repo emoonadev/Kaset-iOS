@@ -180,7 +180,7 @@ enum PodcastParser {
         {
             return .show(PodcastShow(
                 id: browseId, title: title, author: subtitle, description: nil,
-                thumbnailURL: thumbnailURL, episodeCount: nil
+                thumbnailURL: thumbnailURL, episodeCount: nil, authorId: Self.channelId(in: data["subtitle"])
             ))
         }
         if let watch = navigation["watchEndpoint"] as? [String: Any], let videoId = watch["videoId"] as? String {
@@ -253,6 +253,7 @@ enum PodcastParser {
         var author: String?
         var description: String?
         var thumbnailURL: URL?
+        var authorId: String?
         var isSubscribed = false
         var episodes: [PodcastEpisode] = []
         var token: String?
@@ -272,6 +273,7 @@ enum PodcastParser {
                 guard let header = section["musicResponsiveHeaderRenderer"] as? [String: Any] else { continue }
                 title = ParsingHelpers.extractTitle(from: header) ?? title
                 author = Self.runsText(header["straplineTextOne"]) ?? ParsingHelpers.extractSubtitle(from: header) ?? author
+                authorId = Self.channelId(in: header["straplineTextOne"]) ?? authorId
                 description = Self.description(from: header) ?? description
                 thumbnailURL = ParsingHelpers.extractThumbnailURL(from: header) ?? thumbnailURL
                 isSubscribed = Self.isSaved(header) ?? isSubscribed
@@ -287,7 +289,7 @@ enum PodcastParser {
 
         let show = PodcastShow(
             id: showId, title: title, author: author, description: description,
-            thumbnailURL: thumbnailURL, episodeCount: nil
+            thumbnailURL: thumbnailURL, episodeCount: nil, authorId: authorId
         )
         // The show is the context of every episode on its page.
         let attributed = episodes.map { $0.withShow(title: title.isEmpty ? nil : title, browseId: showId) }
@@ -419,6 +421,19 @@ enum PodcastParser {
             return Self.runsText(shelf["description"])
         }
         return Self.runsText(description)
+    }
+
+    /// The first channel (`UC…`) linked from a text's runs.
+    private static func channelId(in value: Any?) -> String? {
+        for run in Self.runs(value) {
+            let navigation = run["navigationEndpoint"] as? [String: Any]
+            if let browseId = (navigation?["browseEndpoint"] as? [String: Any])?["browseId"] as? String,
+               Artist.isNavigableId(browseId)
+            {
+                return browseId
+            }
+        }
+        return nil
     }
 
     private static func showBrowseId(in run: [String: Any]) -> String? {

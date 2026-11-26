@@ -19,6 +19,8 @@ struct PodcastParserTests {
         #expect(detail.show.author == "Fixture Network")
         #expect(detail.show.description == "A show used by the tests.")
         #expect(detail.show.thumbnailURL?.absoluteString.contains("fixture-show") == true)
+        // The strapline links the publishing channel.
+        #expect(detail.show.authorId == "UCfixture-channel")
         #expect(detail.isSubscribed)
         #expect(detail.continuationToken == "fixture-episodes-token")
     }
@@ -156,6 +158,12 @@ struct PodcastParserTests {
 
         // The album in the podcasts shelf is not kept.
         #expect(sections[1].items.map(\.id) == ["MPSPPLfixture-show"])
+        if case let .show(show) = sections[1].items.first {
+            #expect(show.author == "Fixture Network")
+            #expect(show.authorId == "UCfixture-channel")
+        } else {
+            Issue.record("Expected a show")
+        }
         // A music video next to an episode card: only the episode stays.
         #expect(sections[2].items.map(\.id) == ["fixture-episode-in-shelf"])
     }

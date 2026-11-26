@@ -42,10 +42,7 @@ struct MediaCard: View {
                 .lineLimit(1)
                 .padding(.top, 2)
             if let subtitle = self.entity.subtitle {
-                Text(subtitle)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                AuthorSubtitle(entity: self.entity, text: subtitle, font: .footnote)
             }
         }
         .frame(width: self.width, alignment: .leading)
@@ -108,12 +105,46 @@ struct MediaRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(self.entity.title).font(.body).lineLimit(1)
                 if let subtitle = self.entity.subtitle {
-                    Text(subtitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                    AuthorSubtitle(entity: self.entity, text: subtitle, font: .subheadline)
                 }
             }
             Spacer(minLength: 0)
         }
         .contentShape(Rectangle())
+    }
+}
+
+/// A card's or row's subtitle. When the entity knows its author's page (artist, channel,
+/// podcast show), a tap on the subtitle opens that page; a tap anywhere else still plays or
+/// opens the card itself.
+struct AuthorSubtitle: View {
+    @Environment(\.openEntity) private var openEntity
+
+    let entity: MediaEntity
+    let text: String
+    let font: Font
+
+    @State private var isHovering = false
+
+    var body: some View {
+        if let author = self.entity.authorEntity, let openEntity {
+            Text(self.text)
+                .font(self.font)
+                .foregroundStyle(.secondary)
+                .underline(Platform.isMac && self.isHovering)
+                .lineLimit(1)
+                .contentShape(Rectangle())
+                // The card is a button or a link: a plain tap gesture would lose to it.
+                .highPriorityGesture(TapGesture().onEnded { openEntity(author) })
+                .onHover { self.isHovering = $0 }
+                .help(Text("Go to \(author.title)"))
+                .accessibilityAction(named: Text("Go to \(author.title)")) { openEntity(author) }
+        } else {
+            Text(self.text)
+                .font(self.font)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
     }
 }
 

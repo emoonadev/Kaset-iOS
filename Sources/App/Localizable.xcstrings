@@ -924,6 +924,16 @@
         }
       }
     },
+    "Go to %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aller à %@"
+          }
+        }
+      }
+    },
     "Haptic feedback" : {
       "extractionState" : "stale",
       "localizations" : {

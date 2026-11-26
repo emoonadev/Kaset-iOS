@@ -12,7 +12,7 @@ struct NowPlayingView: View {
     @State private var isQueuePresented = false
     @State private var isLyricsPresented = false
     @State private var dragOffset: CGFloat = 0
-    @State private var artistToShow: Artist?
+    @State private var artistToShow: MediaEntity?
     @State private var isAddToPlaylistPresented = false
 
     var body: some View {
@@ -93,16 +93,8 @@ struct NowPlayingView: View {
             self.model = model
             await model.artworkChanged(to: state.artworkURL)
         }
-        .sheet(item: self.$artistToShow) { artist in
-            NavigationStack {
-                ArtistDetailView(id: artist.id, fallbackName: artist.name)
-                    .entityDestinations()
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button(role: .close) { self.artistToShow = nil }
-                        }
-                    }
-            }
+        .sheet(item: self.$artistToShow) { author in
+            AuthorSheetStack(author: author) { self.artistToShow = nil }
         }
         .sheet(isPresented: self.$isQueuePresented) { QueueView() }
         .addToPlaylistSheet(
@@ -179,15 +171,15 @@ struct NowPlayingView: View {
         if artists.count > 1 {
             Menu {
                 ForEach(artists) { artist in
-                    Button(artist.name) { self.artistToShow = artist }
+                    Button(artist.name) { self.artistToShow = MediaEntity(artist) }
                 }
             } label: { text }
             .neutralMenuTint()
         } else if state.artist != nil {
             Button {
                 Task {
-                    if let artist = await self.model?.resolveArtist(named: state.artist) {
-                        self.artistToShow = artist
+                    if let page = await self.model?.authorPage(named: state.artist, videoId: state.videoId) {
+                        self.artistToShow = page
                     }
                 }
             } label: { text }
@@ -299,4 +291,25 @@ struct AirPlayButton: UIViewRepresentable {
     }
 
     func updateUIView(_: AVRoutePickerView, context _: Context) {}
+}
+
+/// The artist page, or the show page of an episode, opened from the author name, in its own
+/// navigation stack so links inside it (and author links on its cards) push within the sheet.
+private struct AuthorSheetStack: View {
+    let author: MediaEntity
+    let close: () -> Void
+
+    @State private var path = NavigationPath()
+
+    var body: some View {
+        NavigationStack(path: self.$path) {
+            EntityPage(entity: self.author)
+                .entityNavigation(path: self.$path)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(role: .close, action: self.close)
+                    }
+                }
+        }
+    }
 }

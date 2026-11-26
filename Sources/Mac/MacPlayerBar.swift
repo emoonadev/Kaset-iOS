@@ -72,8 +72,8 @@ struct MacPlayerBar: View {
         if state.artist != nil, !state.isAd {
             Button {
                 Task {
-                    if let artist = await self.shell.nowPlaying.resolveArtist(named: state.artist) {
-                        self.shell.open(MediaEntity(artist))
+                    if let page = await self.shell.nowPlaying.authorPage(named: state.artist, videoId: state.videoId) {
+                        self.shell.open(page)
                     }
                 }
             } label: { text }

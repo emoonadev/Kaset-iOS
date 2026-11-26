@@ -24,12 +24,31 @@ struct MediaEntity: Identifiable, Hashable {
         }
     }
 
+    /// Who made it, when that has a page: a song's or album's artist, a playlist's owner, a
+    /// show's channel, an episode's show. The subtitle opens it.
+    struct Author: Hashable {
+        let name: String
+        let target: Target
+    }
+
     let id: String
     let title: String
     let subtitle: String?
     let thumbnailURL: URL?
     let target: Target
     let isCircular: Bool
+    var author: Author?
+
+    /// The author's page, as an entity to open.
+    var authorEntity: MediaEntity? {
+        guard let author else { return nil }
+        var isArtist = false
+        if case .artist = author.target { isArtist = true }
+        return MediaEntity(
+            id: "author-\(author.name)-\(author.target)", title: author.name, subtitle: nil,
+            thumbnailURL: nil, target: author.target, isCircular: isArtist
+        )
+    }
 
     var videoId: String? {
         switch self.target {
@@ -69,14 +88,16 @@ extension MediaEntity {
             thumbnailURL: song.thumbnailURL,
             // Episodes listed in Home shelves arrive as songs.
             target: song.musicVideoType == .podcastEpisode ? .episode(videoId: song.videoId) : .song(videoId: song.videoId),
-            isCircular: false
+            isCircular: false,
+            author: .first(of: song.artists)
         )
     }
 
     init(_ show: PodcastShow, id: String? = nil) {
         self.init(
             id: id ?? "podcast-\(show.id)", title: show.title, subtitle: show.author,
-            thumbnailURL: show.thumbnailURL, target: .podcast(id: show.id), isCircular: false
+            thumbnailURL: show.thumbnailURL, target: .podcast(id: show.id), isCircular: false,
+            author: .channel(of: show)
         )
     }
 
@@ -84,7 +105,8 @@ extension MediaEntity {
         self.init(
             id: id ?? "episode-\(episode.id)", title: episode.title,
             subtitle: [episode.showTitle, episode.publishedDate].compactMap(\.self).joined(separator: " · ").nilIfEmpty,
-            thumbnailURL: episode.thumbnailURL, target: .episode(videoId: episode.id), isCircular: false
+            thumbnailURL: episode.thumbnailURL, target: .episode(videoId: episode.id), isCircular: false,
+            author: .show(of: episode)
         )
     }
 
@@ -102,7 +124,8 @@ extension MediaEntity {
         case let .album(album):
             self.init(
                 id: item.id, title: album.title, subtitle: album.artistsDisplay.isEmpty ? nil : album.artistsDisplay,
-                thumbnailURL: album.thumbnailURL, target: .album(id: album.id), isCircular: false
+                thumbnailURL: album.thumbnailURL, target: .album(id: album.id), isCircular: false,
+                author: .first(of: album.artists ?? [])
             )
         case let .playlist(playlist):
             if let mood = playlist.resolvedMoodCategoryEndpoint {
@@ -113,7 +136,8 @@ extension MediaEntity {
             } else {
                 self.init(
                     id: item.id, title: playlist.title, subtitle: playlist.author?.name,
-                    thumbnailURL: playlist.thumbnailURL, target: .playlist(id: playlist.id), isCircular: false
+                    thumbnailURL: playlist.thumbnailURL, target: .playlist(id: playlist.id), isCircular: false,
+                    author: .first(of: playlist.author.map { [$0] } ?? [])
                 )
             }
         case let .artist(artist):
@@ -131,7 +155,8 @@ extension MediaEntity {
         case let .album(album), let .audiobook(album):
             self.init(
                 id: item.id, title: album.title, subtitle: item.subtitle,
-                thumbnailURL: album.thumbnailURL, target: .album(id: album.id), isCircular: false
+                thumbnailURL: album.thumbnailURL, target: .album(id: album.id), isCircular: false,
+                author: .first(of: album.artists ?? [])
             )
         case let .artist(artist), let .profile(artist):
             self.init(
@@ -141,18 +166,21 @@ extension MediaEntity {
         case let .playlist(playlist):
             self.init(
                 id: item.id, title: playlist.title, subtitle: item.subtitle,
-                thumbnailURL: playlist.thumbnailURL, target: .playlist(id: playlist.id), isCircular: false
+                thumbnailURL: playlist.thumbnailURL, target: .playlist(id: playlist.id), isCircular: false,
+                author: .first(of: playlist.author.map { [$0] } ?? [])
             )
         case let .podcastShow(show):
             self.init(
                 id: item.id, title: show.title, subtitle: item.subtitle,
                 thumbnailURL: show.thumbnailURL,
-                target: show.hasNavigableId ? .podcast(id: show.id) : .unsupported, isCircular: false
+                target: show.hasNavigableId ? .podcast(id: show.id) : .unsupported, isCircular: false,
+                author: .channel(of: show)
             )
         case let .podcastEpisode(episode):
             self.init(
                 id: item.id, title: episode.title, subtitle: item.subtitle,
-                thumbnailURL: episode.thumbnailURL, target: .episode(videoId: episode.id), isCircular: false
+                thumbnailURL: episode.thumbnailURL, target: .episode(videoId: episode.id), isCircular: false,
+                author: .show(of: episode)
             )
         }
     }
@@ -167,7 +195,8 @@ extension MediaEntity {
     init(_ playlist: Playlist) {
         self.init(
             id: "playlist-\(playlist.id)", title: playlist.title, subtitle: playlist.author?.name,
-            thumbnailURL: playlist.thumbnailURL, target: .playlist(id: playlist.id), isCircular: false
+            thumbnailURL: playlist.thumbnailURL, target: .playlist(id: playlist.id), isCircular: false,
+            author: .first(of: playlist.author.map { [$0] } ?? [])
         )
     }
 
@@ -175,7 +204,8 @@ extension MediaEntity {
         self.init(
             id: "album-\(album.id)", title: album.title,
             subtitle: album.artistsDisplay.isEmpty ? nil : album.artistsDisplay,
-            thumbnailURL: album.thumbnailURL, target: .album(id: album.id), isCircular: false
+            thumbnailURL: album.thumbnailURL, target: .album(id: album.id), isCircular: false,
+            author: .first(of: album.artists ?? [])
         )
     }
 
@@ -204,6 +234,27 @@ extension MediaEntity {
         default:
             return false
         }
+    }
+}
+
+extension MediaEntity.Author {
+    /// The first artist (or podcast show) that has a page.
+    static func first(of artists: [Artist]) -> Self? {
+        for artist in artists {
+            if artist.hasNavigableId { return Self(name: artist.name, target: .artist(id: artist.id)) }
+            if PodcastParser.isPodcastShow(artist.id) { return Self(name: artist.name, target: .podcast(id: artist.id)) }
+        }
+        return nil
+    }
+
+    static func channel(of show: PodcastShow) -> Self? {
+        guard let id = show.authorId, let name = show.author else { return nil }
+        return Self(name: name, target: .artist(id: id))
+    }
+
+    static func show(of episode: PodcastEpisode) -> Self? {
+        guard let id = episode.showBrowseId, let name = episode.showTitle else { return nil }
+        return Self(name: name, target: .podcast(id: id))
     }
 }
 

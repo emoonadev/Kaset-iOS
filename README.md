@@ -126,6 +126,8 @@ Comfortable with Xcode? Build it yourself, see [Build and run](#build-and-run).
   podcasts on artist pages. Episodes play on their own, without a radio queue.
 - **Collections:** Library (playlists, albums, artists, saved podcasts), Liked music, History.
 - **Detail pages** for playlists, albums and artists (top songs, discography, related artists, follow, radio, shuffle).
+- **Author links:** the subtitle of a cover or result opens its artist, playlist owner, podcast
+  channel or show; in the player, the author of a podcast episode opens its show.
 - **Now Playing** modelled on Apple Music: artwork-tinted background, scrubber, system volume,
   like, lyrics, AirPlay, queue (jump to, remove, drag to reorder), shuffle and repeat.
 - **Background playback:** keeps going locked, advances through the queue, lock-screen / Control

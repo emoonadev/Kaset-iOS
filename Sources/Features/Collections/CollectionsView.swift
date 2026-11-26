@@ -17,9 +17,10 @@ struct CollectionsView: View {
     @State private var history: BrowsePageModel?
     @State private var isCreatingPlaylist = false
     @State private var newPlaylistTitle = ""
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: self.$path) {
             Group {
                 if self.environment.auth.state == .signedIn {
                     VStack(spacing: 0) {
@@ -53,7 +54,7 @@ struct CollectionsView: View {
                 }
             }
             .navigationTitle("Collections")
-            .entityDestinations()
+            .entityNavigation(path: self.$path)
             .toolbar {
                 if self.environment.auth.state == .signedIn, self.selection == .library {
                     ToolbarItem(placement: .trailingBar) {

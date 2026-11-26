@@ -84,6 +84,28 @@ struct PodcastEntityTests {
         }
     }
 
+    @Test func authorsOpenTheirPage() {
+        // An episode's author is its show.
+        #expect(MediaEntity(self.episode).authorEntity?.target == .podcast(id: "MPSPPLshow"))
+        // A show's author is its channel, when the response linked it.
+        var show = self.show
+        #expect(MediaEntity(show).authorEntity == nil)
+        show.authorId = "UCnetwork"
+        let channel = MediaEntity(show).authorEntity
+        #expect(channel?.target == .artist(id: "UCnetwork"))
+        #expect(channel?.title == "Network")
+        #expect(channel?.isCircular == true)
+        // A song's author is its first artist with a page; names without one are not links.
+        let song = Song(
+            id: "s", title: "Song",
+            artists: [Artist(id: "nolink", name: "Guest"), Artist(id: "UCartist", name: "Singer")],
+            videoId: "s"
+        )
+        #expect(MediaEntity(song).authorEntity?.target == .artist(id: "UCartist"))
+        let unlinked = Song(id: "u", title: "Song", artists: [Artist(id: "nolink", name: "Guest")], videoId: "u")
+        #expect(MediaEntity(unlinked).authorEntity == nil)
+    }
+
     @Test func onlyA404MeansNoPodcastsPage() {
         #expect(PodcastsModel.isNotFound(YTMusicError.apiError(message: "HTTP 404", code: 404)))
         #expect(!PodcastsModel.isNotFound(YTMusicError.apiError(message: "HTTP 500", code: 500)))
