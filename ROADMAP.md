@@ -62,6 +62,9 @@ Legend: `[x]` shipped · `[ ]` planned.
       it (404, `/podcasts` redirects to Home), the podcast shelves of Home and Explore; show
       pages with save to library and paginated episodes (date, duration, progress), podcast and
       episode search filters, artist podcasts, saved shows in the Library
+- [x] Author links (iOS and macOS): the subtitle of every cover and result opens its artist,
+      playlist owner, podcast channel or show (a mix offers each artist); the player opens the
+      show of a podcast episode instead of searching its name
 - [ ] **Verify on device** (code shipped, not yet measured):
   - Siri phrases, the Shortcuts actions, the *Recognise Music* and alarm automations, and
     Visual Intelligence results: none could run in the simulator

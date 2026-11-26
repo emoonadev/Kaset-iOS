@@ -127,7 +127,8 @@ Comfortable with Xcode? Build it yourself, see [Build and run](#build-and-run).
 - **Collections:** Library (playlists, albums, artists, saved podcasts), Liked music, History.
 - **Detail pages** for playlists, albums and artists (top songs, discography, related artists, follow, radio, shuffle).
 - **Author links:** the subtitle of a cover or result opens its artist, playlist owner, podcast
-  channel or show; in the player, the author of a podcast episode opens its show.
+  channel or show (an artist mix offers each of its artists); in the player, the author of a
+  podcast episode opens its show.
 - **Now Playing** modelled on Apple Music: artwork-tinted background, scrubber, system volume,
   like, lyrics, AirPlay, queue (jump to, remove, drag to reorder), shuffle and repeat.
 - **Background playback:** keeps going locked, advances through the queue, lock-screen / Control
@@ -147,6 +148,8 @@ The `KasetMac` target shares the InnerTube client, playback engine and feature s
 iOS, with a desktop layout:
 
 - Sidebar navigation (Search, Home, Discover with Podcasts, Collection, your playlists) and account switcher.
+- Author links: click the subtitle of a cover or the artist in the player bar to open the artist,
+  channel or podcast show.
 - Player bar at the bottom of the content, with like, AirPlay, shuffle, repeat and volume.
 - Lyrics and queue in a panel on the right.
 - Paging arrows on horizontal shelves, keyboard and trackpad friendly.
