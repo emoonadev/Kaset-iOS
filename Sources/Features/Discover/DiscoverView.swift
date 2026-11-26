@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Explore · Charts · Moods · New releases · Podcasts. Every segment keeps its own model and
 /// scroll position: segments are loaded the first time they are shown and then only hidden.
-/// Podcasts is left out in regions where YouTube Music does not offer it.
 struct DiscoverView: View {
     enum Segment: String, CaseIterable, Identifiable {
         case explore = "Explore"
@@ -31,22 +30,18 @@ struct DiscoverView: View {
     @State private var podcasts: PodcastsModel?
     @State private var visited: Set<Segment> = [.explore]
 
-    private var segments: [Segment] {
-        Segment.allCases.filter { $0 != .podcasts || !self.environment.podcastsAvailability.isHidden }
-    }
-
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 Picker("Section", selection: self.$selection) {
-                    ForEach(self.segments) { Text($0.rawValue).tag($0) }
+                    ForEach(Segment.allCases) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.bottom, 8)
 
                 ZStack {
-                    ForEach(self.segments) { segment in
+                    ForEach(Segment.allCases) { segment in
                         if self.visited.contains(segment) {
                             self.page(for: segment)
                                 .opacity(self.selection == segment ? 1 : 0)
@@ -71,12 +66,6 @@ struct DiscoverView: View {
                 await model.load()
             }
         }
-        .task(id: self.environment.contentScope) {
-            await self.environment.probePodcasts()
-        }
-        .onChange(of: self.environment.podcastsAvailability.isHidden) { _, isHidden in
-            if isHidden, self.selection == .podcasts { self.selection = .explore }
-        }
         .onChange(of: self.environment.contentScope) {
             // Another account: its podcasts page is loaded again when shown.
             self.podcasts = nil
@@ -99,7 +88,8 @@ struct DiscoverView: View {
 
     private func podcastsModel() -> PodcastsModel {
         if let podcasts { return podcasts }
-        let model = PodcastsModel(client: self.environment.client, availability: self.environment.podcastsAvailability)
+        let auth = self.environment.auth
+        let model = PodcastsModel(client: self.environment.client) { auth.state == .signedIn }
         self.podcasts = model
         return model
     }

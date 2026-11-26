@@ -57,10 +57,11 @@ Legend: `[x]` shipped · `[ ]` planned.
 - [x] Visual Intelligence (Apple Intelligence iPhones): results for the text read on a cover or
       poster; tapping one opens or plays it. An image without text finds nothing
 - [x] Distribution: every release includes an unsigned iOS `.ipa`, with a README guide to install it without Xcode (Sideloadly, AltStore, SideStore)
-- [x] Podcasts (iOS and macOS): discovery page (*Discover → Podcasts*, sidebar on the Mac),
-      show pages with save to library and paginated episodes (date, duration, progress),
-      podcast and episode search filters, artist podcasts, saved shows in the Library. Hidden
-      in regions where YouTube Music has no podcasts page (probed once per account and launch)
+- [x] Podcasts (iOS and macOS): a Podcasts page (*Discover → Podcasts*, sidebar on the Mac)
+      with saved shows, then YouTube Music's podcasts page or, where the account does not have
+      it (404, `/podcasts` redirects to Home), the podcast shelves of Home and Explore; show
+      pages with save to library and paginated episodes (date, duration, progress), podcast and
+      episode search filters, artist podcasts, saved shows in the Library
 - [ ] **Verify on device** (code shipped, not yet measured):
   - Siri phrases, the Shortcuts actions, the *Recognise Music* and alarm automations, and
     Visual Intelligence results: none could run in the simulator

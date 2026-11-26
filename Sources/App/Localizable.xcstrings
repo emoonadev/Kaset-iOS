@@ -1500,16 +1500,6 @@
         }
       }
     },
-    "No podcasts here" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas de podcasts ici"
-          }
-        }
-      }
-    },
     "No podcasts to show" : {
       "localizations" : {
         "fr" : {
@@ -2954,12 +2944,12 @@
         }
       }
     },
-    "YouTube Music doesn't offer podcasts in your region. Podcasts still appear in search." : {
+    "Your podcasts" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "YouTube Music ne propose pas les podcasts dans votre région. Ils restent accessibles depuis la recherche."
+            "value" : "Vos podcasts"
           }
         }
       }

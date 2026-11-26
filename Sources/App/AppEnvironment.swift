@@ -17,8 +17,6 @@ final class AppEnvironment {
     let mixes = ArtistMixLibrary()
     let newReleases = NewReleaseWatcher()
     let listening = ListeningHistory()
-    /// Whether the Podcasts discovery page exists in the account's region.
-    let podcastsAvailability = PodcastsAvailability()
     #if os(macOS)
     @ObservationIgnored let trackNotifier = TrackChangeNotifier()
     #endif
@@ -46,13 +44,6 @@ final class AppEnvironment {
 
     /// Who the API currently answers for: changes on sign-in, sign-out and account switches.
     var contentScope: String { "\(self.auth.state)-\(self.accountRevision)" }
-
-    /// Probes the Podcasts discovery page once per account (see `PodcastsAvailability`).
-    func probePodcasts() async {
-        // Unknown auth: the session is still being restored, so the answer would be a guest's.
-        guard self.auth.state != .unknown else { return }
-        await self.podcastsAvailability.probe(client: self.client, scope: self.contentScope)
-    }
 
     var isPlaybackDebugPresented = false
 

@@ -37,6 +37,31 @@ extension YTMusicClient {
         return PodcastParser.parseDiscoveryContinuation(data)
     }
 
+    /// The podcast shelves of Home or Explore (only shows and episodes, empty shelves dropped).
+    /// Shares the page's cached response.
+    func podcastShelves(of type: PaginatedContentType, forceRefresh: Bool = false) async throws -> [PodcastSection] {
+        let data = try await self.request(
+            "browse", body: ["browseId": type.rawValue], ttl: APICache.TTL.home, bypassCache: forceRefresh
+        )
+        return PodcastParser.parsePodcastShelves(data)
+    }
+
+    /// Shows saved to the library: the dedicated list, else the library landing preview.
+    func getSavedPodcasts(forceRefresh: Bool = false) async throws -> [PodcastShow] {
+        let dedicated = try? await self.request(
+            "browse", body: ["browseId": Self.libraryPodcastsBrowseId], ttl: APICache.TTL.library,
+            bypassCache: forceRefresh
+        )
+        let landing = try await self.request(
+            "browse", body: ["browseId": "FEmusic_library_landing"], ttl: APICache.TTL.library,
+            bypassCache: forceRefresh
+        )
+        return Self.mergedPodcastShows(
+            dedicated.map { PlaylistParser.parseLibraryContent($0).podcastShows } ?? [],
+            PlaylistParser.parseLibraryContent(landing).podcastShows
+        )
+    }
+
     /// A show's page: header and first episodes, newest first.
     func getPodcastShow(browseId: String) async throws -> PodcastShowDetail {
         let data = try await self.request("browse", body: ["browseId": browseId], ttl: APICache.TTL.playlist)

@@ -122,6 +122,37 @@ enum PodcastParser {
         return PodcastSection(id: ParsingHelpers.stableId(title: title, components: first.id), title: title, items: items)
     }
 
+    // MARK: - Podcast shelves of other pages
+
+    /// The podcast shelves of a mixed page (Home, Explore): only shows and podcast episodes are
+    /// kept, and a shelf left with nothing is dropped. Music items never count as episodes.
+    static func parsePodcastShelves(_ data: [String: Any]) -> [PodcastSection] {
+        guard let contents = data["contents"] as? [String: Any],
+              let singleColumn = contents["singleColumnBrowseResultsRenderer"] as? [String: Any],
+              let sectionList = Self.firstTabSectionList(singleColumn)
+        else { return [] }
+        return (sectionList["contents"] as? [[String: Any]] ?? []).compactMap { section in
+            guard let carousel = section["musicCarouselShelfRenderer"] as? [String: Any] else { return nil }
+            let header = (carousel["header"] as? [String: Any])?["musicCarouselShelfBasicHeaderRenderer"] as? [String: Any]
+            let title = header.flatMap { ParsingHelpers.extractTitle(from: $0) } ?? ""
+            let podcastItems = (carousel["contents"] as? [[String: Any]] ?? []).filter(Self.isPodcastItem)
+            return Self.makeSection(title: title, contents: podcastItems)
+        }
+    }
+
+    /// A show (`MPSPP…`) or an episode: multi-row items are episode rows, other items count
+    /// only when their watch endpoint says podcast episode.
+    static func isPodcastItem(_ data: [String: Any]) -> Bool {
+        if data["musicMultiRowListItemRenderer"] != nil { return true }
+        guard let renderer = (data["musicTwoRowItemRenderer"] ?? data["musicResponsiveListItemRenderer"]) as? [String: Any] else {
+            return false
+        }
+        if let browseId = ParsingHelpers.extractBrowseId(from: renderer), Self.isPodcastShow(browseId) {
+            return true
+        }
+        return ParsingHelpers.extractMusicVideoType(from: renderer) == .podcastEpisode
+    }
+
     // MARK: - Items
 
     static func parseItem(_ data: [String: Any]) -> PodcastSectionItem? {
@@ -171,7 +202,9 @@ enum PodcastParser {
 
         let title = Self.runsText(data["title"]) ?? ""
         let subtitleRuns = Self.runs(data["subtitle"])
-        let showRun = subtitleRuns.first { Self.showBrowseId(in: $0) != nil }
+        // Explore and Home name the show in `secondTitle`; mixed lists link it in the subtitle.
+        let showRun = Self.runs(data["secondTitle"]).first { Self.showBrowseId(in: $0) != nil }
+            ?? subtitleRuns.first { Self.showBrowseId(in: $0) != nil }
         let progress = Self.progress(from: data)
 
         let otherRuns = subtitleRuns

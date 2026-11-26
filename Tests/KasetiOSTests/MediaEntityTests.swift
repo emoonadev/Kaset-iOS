@@ -84,11 +84,23 @@ struct PodcastEntityTests {
         }
     }
 
-    @Test func onlyA404HidesPodcasts() {
-        #expect(PodcastsAvailability.isRegionUnavailable(YTMusicError.apiError(message: "HTTP 404", code: 404)))
-        #expect(!PodcastsAvailability.isRegionUnavailable(YTMusicError.apiError(message: "HTTP 500", code: 500)))
-        #expect(!PodcastsAvailability.isRegionUnavailable(YTMusicError.notAuthenticated))
-        #expect(!PodcastsAvailability.isRegionUnavailable(CancellationError()))
+    @Test func onlyA404MeansNoPodcastsPage() {
+        #expect(PodcastsModel.isNotFound(YTMusicError.apiError(message: "HTTP 404", code: 404)))
+        #expect(!PodcastsModel.isNotFound(YTMusicError.apiError(message: "HTTP 500", code: 500)))
+        #expect(!PodcastsModel.isNotFound(YTMusicError.notAuthenticated))
+        #expect(!PodcastsModel.isNotFound(CancellationError()))
+    }
+
+    @Test func emptyAndRepeatedShelvesAreDropped() {
+        let show = PodcastSectionItem.show(self.show)
+        let sections = PodcastsModel.withoutEmptyOrDuplicate([
+            PodcastSection(id: "a", title: "Shows", items: [show]),
+            PodcastSection(id: "b", title: "Empty", items: []),
+            PodcastSection(id: "c", title: "shows", items: [show]),
+            PodcastSection(id: "a", title: "Other", items: [show]),
+            PodcastSection(id: "d", title: "Episodes", items: [.episode(self.episode)]),
+        ])
+        #expect(sections.map(\.id) == ["a", "d"])
     }
 }
 

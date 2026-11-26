@@ -135,6 +135,42 @@ struct PodcastParserTests {
         #expect(PodcastParser.parseDiscoveryContinuation([:]).sections.isEmpty)
     }
 
+    // MARK: Podcast shelves of Home and Explore
+
+    @Test("Home and Explore keep only podcast shelves, with only podcast items")
+    func mixedPageShelves() throws {
+        let sections = try PodcastParser.parsePodcastShelves(Self.fixture("podcast_mixed_shelves"))
+
+        // Music shelves (Trending, New music videos) and the shortcut grid are dropped.
+        #expect(sections.map(\.title) == ["Popular episodes", "Podcasts to get you started", "Mixed picks"])
+
+        guard case let .episode(popular) = sections[0].items.first else {
+            Issue.record("Expected an episode")
+            return
+        }
+        // Explore names the show in secondTitle; the subtitle is "views • date".
+        #expect(popular.showTitle == "Fixture Show")
+        #expect(popular.showBrowseId == "MPSPPLfixture-show")
+        #expect(popular.publishedDate == "1d ago")
+        #expect(popular.durationSeconds == 21 * 60)
+
+        // The album in the podcasts shelf is not kept.
+        #expect(sections[1].items.map(\.id) == ["MPSPPLfixture-show"])
+        // A music video next to an episode card: only the episode stays.
+        #expect(sections[2].items.map(\.id) == ["fixture-episode-in-shelf"])
+    }
+
+    @Test("Podcast items are recognised; music items never are")
+    func podcastItemDetection() throws {
+        let sections = try PodcastParser.parsePodcastShelves(Self.fixture("podcast_mixed_shelves"))
+        let ids = sections.flatMap(\.items).map(\.id)
+        #expect(!ids.contains("fixture-song"))
+        #expect(!ids.contains("fixture-video"))
+        #expect(!ids.contains("fixture-video-2"))
+        #expect(!ids.contains("MPREfixture-album"))
+        #expect(PodcastParser.parsePodcastShelves([:]).isEmpty)
+    }
+
     // MARK: Where the discovery page is
 
     @Test("Explore's Podcasts shortcut gives the discovery endpoint")

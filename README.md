@@ -119,10 +119,11 @@ Comfortable with Xcode? Build it yourself, see [Build and run](#build-and-run).
 - **Home, Discover, Collections, Search** tabs in the Apple Music layout, with the mini player as the
   tab bar accessory (full pill, compact inline when the bar minimizes).
 - **Discover:** Explore, Charts, Moods & genres, New, Podcasts.
-- **Podcasts:** discovery page, show pages (description, save to library, newest episodes with
-  date, duration and listening progress), podcast and episode filters in Search, podcasts on
-  artist pages. Episodes play on their own, without a radio queue. The Podcasts page hides
-  itself in regions where YouTube Music does not offer it.
+- **Podcasts:** a Podcasts page with your saved shows, then YouTube Music's podcasts page where
+  your account has it, or else the podcast shelves of Home (suggestions) and Explore (popular
+  episodes); empty shelves are never shown. Show pages (description, save to library, newest
+  episodes with date, duration and listening progress), podcast and episode filters in Search,
+  podcasts on artist pages. Episodes play on their own, without a radio queue.
 - **Collections:** Library (playlists, albums, artists, saved podcasts), Liked music, History.
 - **Detail pages** for playlists, albums and artists (top songs, discography, related artists, follow, radio, shuffle).
 - **Now Playing** modelled on Apple Music: artwork-tinted background, scrubber, system volume,

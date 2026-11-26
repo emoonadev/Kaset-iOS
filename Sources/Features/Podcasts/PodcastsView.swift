@@ -1,7 +1,15 @@
 import Observation
 import SwiftUI
 
-/// The podcasts discovery page (`FEmusic_podcasts`), with its continuation.
+/// The Podcasts page. YouTube Music's own podcasts page is not offered on every account
+/// (it answers 404 and the web client redirects `/podcasts` to Home), so the page is put
+/// together from what answers:
+///
+/// 1. the shows saved to the library (signed in),
+/// 2. YouTube Music's podcasts page, when it exists for this account, or else
+/// 3. the podcast shelves of Home (personal suggestions) and Explore (popular episodes).
+///
+/// A shelf with nothing in it is never shown.
 @MainActor
 @Observable
 final class PodcastsModel {
@@ -12,14 +20,15 @@ final class PodcastsModel {
     private(set) var sections: [PodcastSection] = []
     private(set) var phase: Phase = .idle
     private(set) var isLoadingMore = false
+    /// Next batch of YouTube Music's podcasts page, when that page is the source.
     private var continuationToken: String?
     private var generation = 0
     private let client: YTMusicClient
-    private let availability: PodcastsAvailability
+    private let isSignedIn: @MainActor () -> Bool
 
-    init(client: YTMusicClient, availability: PodcastsAvailability) {
+    init(client: YTMusicClient, isSignedIn: @escaping @MainActor () -> Bool) {
         self.client = client
-        self.availability = availability
+        self.isSignedIn = isSignedIn
     }
 
     func load(force: Bool = false) async {
@@ -27,24 +36,39 @@ final class PodcastsModel {
         self.generation &+= 1
         let generation = self.generation
         if self.sections.isEmpty { self.phase = .loading }
-        do {
-            let page = try await self.client.getPodcasts(forceRefresh: force)
-            guard generation == self.generation else { return }
-            self.sections = page.sections
-            self.continuationToken = page.continuationToken
-            self.phase = .loaded
-        } catch is CancellationError {
+
+        async let savedShows = self.savedShows(force: force)
+        async let officialPage = self.officialPage(force: force)
+        let saved = await savedShows
+        let (official, failure) = await officialPage
+
+        var composed: [PodcastSection] = []
+        if !saved.isEmpty {
+            composed.append(PodcastSection(
+                id: "saved-podcasts", title: String(localized: "Your podcasts"), items: saved.map(PodcastSectionItem.show)
+            ))
+        }
+        var token: String?
+        if let official, !official.sections.isEmpty {
+            composed += official.sections
+            token = official.continuationToken
+        } else {
+            // Personal suggestions first, then what is popular.
+            async let home = try? self.client.podcastShelves(of: .home, forceRefresh: force)
+            async let explore = try? self.client.podcastShelves(of: .explore, forceRefresh: force)
+            composed += (await home ?? []) + (await explore ?? [])
+        }
+
+        guard generation == self.generation, !Task.isCancelled else {
             if self.phase == .loading { self.phase = .idle }
-        } catch {
-            guard generation == self.generation else { return }
-            self.availability.record(error)
-            if PodcastsAvailability.isRegionUnavailable(error) {
-                // The entry disappears; a clean empty page is a softer landing than an error.
-                self.sections = []
-                self.phase = .loaded
-            } else {
-                self.phase = self.sections.isEmpty ? .failed(error.localizedDescription) : .loaded
-            }
+            return
+        }
+        self.sections = Self.withoutEmptyOrDuplicate(composed)
+        self.continuationToken = token
+        if self.sections.isEmpty, let failure {
+            self.phase = .failed(failure.localizedDescription)
+        } else {
+            self.phase = .loaded
         }
     }
 
@@ -59,9 +83,40 @@ final class PodcastsModel {
             self.continuationToken = nil
             return
         }
-        let known = Set(self.sections.map(\.id))
-        self.sections += page.sections.filter { !known.contains($0.id) }
+        self.sections = Self.withoutEmptyOrDuplicate(self.sections + page.sections)
         self.continuationToken = page.continuationToken
+    }
+
+    private func savedShows(force: Bool) async -> [PodcastShow] {
+        guard self.isSignedIn() else { return [] }
+        return (try? await self.client.getSavedPodcasts(forceRefresh: force)) ?? []
+    }
+
+    /// YouTube Music's podcasts page, `nil` where it does not exist (404). Another failure is
+    /// returned too, to be shown if nothing else loads.
+    private func officialPage(force: Bool) async -> (PodcastParser.DiscoveryPage?, Error?) {
+        do {
+            return (try await self.client.getPodcasts(forceRefresh: force), nil)
+        } catch {
+            let isExpected = Self.isNotFound(error) || error is CancellationError
+            return (nil, isExpected ? nil : error)
+        }
+    }
+
+    nonisolated static func isNotFound(_ error: Error) -> Bool {
+        if case let .apiError(_, code) = error as? YTMusicError { return code == 404 }
+        return false
+    }
+
+    /// Drops shelves with no items, and shelves that repeat one already shown (same title).
+    nonisolated static func withoutEmptyOrDuplicate(_ sections: [PodcastSection]) -> [PodcastSection] {
+        var seenIds = Set<String>()
+        var seenTitles = Set<String>()
+        return sections.filter { section in
+            guard !section.items.isEmpty, seenIds.insert(section.id).inserted else { return false }
+            let title = section.title.lowercased()
+            return title.isEmpty || seenTitles.insert(title).inserted
+        }
     }
 }
 
@@ -72,41 +127,41 @@ struct PodcastsView: View {
     let model: PodcastsModel
 
     var body: some View {
-        switch self.model.phase {
-        case .idle, .loading:
-            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-        case let .failed(message):
-            LoadFailureView(message: message) { Task { await self.model.load(force: true) } }
-        case .loaded:
-            if self.model.sections.isEmpty, self.environment.podcastsAvailability.isHidden {
-                ContentUnavailableView(
-                    "No podcasts here",
-                    systemImage: "mic.slash",
-                    description: Text("YouTube Music doesn't offer podcasts in your region. Podcasts still appear in search.")
-                )
-            } else if self.model.sections.isEmpty {
-                ContentUnavailableView {
-                    Label("No podcasts to show", systemImage: "mic")
-                } description: {
-                    Text("Search for a show to find podcasts.")
-                } actions: {
-                    Button("Try Again") { Task { await self.model.load(force: true) } }
-                }
-            } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 32) {
-                        ForEach(self.model.sections) { section in
-                            ShelfView(title: section.title, entities: section.items.map(MediaEntity.init))
-                                .task { await self.model.loadMoreIfNeeded(after: section) }
-                        }
-                        if self.model.isLoadingMore {
-                            ProgressView().frame(maxWidth: .infinity)
-                        }
+        Group {
+            switch self.model.phase {
+            case .idle, .loading:
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            case let .failed(message):
+                LoadFailureView(message: message) { Task { await self.model.load(force: true) } }
+            case .loaded:
+                if self.model.sections.isEmpty {
+                    ContentUnavailableView {
+                        Label("No podcasts to show", systemImage: "mic")
+                    } description: {
+                        Text("Search for a show to find podcasts.")
+                    } actions: {
+                        Button("Try Again") { Task { await self.model.load(force: true) } }
                     }
-                    .padding(.vertical)
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 32) {
+                            ForEach(self.model.sections) { section in
+                                ShelfView(title: section.title, entities: section.items.map(MediaEntity.init))
+                                    .task { await self.model.loadMoreIfNeeded(after: section) }
+                            }
+                            if self.model.isLoadingMore {
+                                ProgressView().frame(maxWidth: .infinity)
+                            }
+                        }
+                        .padding(.vertical)
+                    }
+                    .refreshable { await self.model.load(force: true) }
                 }
-                .refreshable { await self.model.load(force: true) }
             }
+        }
+        // A show saved or removed on its page: "Your podcasts" follows.
+        .onChange(of: self.environment.libraryRevision) {
+            Task { await self.model.load(force: true) }
         }
     }
 }

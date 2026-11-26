@@ -123,7 +123,7 @@ final class MacShell {
     /// The Podcasts page, loaded once and kept like the browse pages.
     func podcasts() -> PodcastsModel {
         if let podcastsModel { return podcastsModel }
-        let model = PodcastsModel(client: self.client, availability: AppEnvironment.shared.podcastsAvailability)
+        let model = PodcastsModel(client: self.client) { AppEnvironment.shared.auth.state == .signedIn }
         self.podcastsModel = model
         return model
     }
@@ -137,12 +137,6 @@ final class MacShell {
     func resetPodcasts() {
         self.podcastsModel = nil
         if self.selection == .podcasts { self.loadPodcasts() }
-    }
-
-    /// Podcasts is not offered in this region: leave its page.
-    func podcastsBecameUnavailable() {
-        if self.selection == .podcasts { self.selection = .explore }
-        self.paths[.podcasts] = nil
     }
 
     func path(for item: MacSidebarItem) -> Binding<NavigationPath> {
