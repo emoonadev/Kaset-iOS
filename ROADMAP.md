@@ -56,6 +56,7 @@ Legend: `[x]` shipped · `[ ]` planned.
       first if the phone is locked
 - [x] Visual Intelligence (Apple Intelligence iPhones): results for the text read on a cover or
       poster; tapping one opens or plays it. An image without text finds nothing
+- [x] Distribution: every release includes an unsigned iOS `.ipa`, with a README guide to install it without Xcode (Sideloadly, AltStore, SideStore)
 - [ ] **Verify on device** (code shipped, not yet measured):
   - Siri phrases, the Shortcuts actions, the *Recognise Music* and alarm automations, and
     Visual Intelligence results: none could run in the simulator
@@ -113,7 +114,6 @@ checked first (spike on device).
 - [ ] **UI tests**: Home → play → Now Playing flow against a fake client
 - [ ] **Accessibility pass**: full VoiceOver audit, largest Dynamic Type on detail and Now Playing
 - [ ] **More languages**: Spanish, German, Hebrew (RTL layout check)
-- [ ] **Distribution**: GitHub release with an unsigned `.ipa` and an AltStore / SideStore guide
 
 ## Out of scope for now
 

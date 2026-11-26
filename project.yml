@@ -25,6 +25,9 @@ targets:
         CFBundleDisplayName: Spool
         CFBundleLocalizations: [en, fr]
         CFBundleDevelopmentRegion: en
+        # Read from build settings so the release workflow can stamp the version.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UIBackgroundModes:
           - audio
           - fetch
