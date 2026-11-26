@@ -106,6 +106,22 @@ struct PodcastEntityTests {
         #expect(MediaEntity(unlinked).authorEntity == nil)
     }
 
+    @Test func homeShelfCoversLinkTheirArtists() {
+        let release = NewRelease(
+            id: "MPREalbum", title: "Album", artistId: "UCartist", artistName: "Singer",
+            thumbnailURL: nil, year: nil, isSingle: false, foundAt: .now
+        )
+        #expect(NewReleasesShelf.entity(for: release).authorEntity?.target == .artist(id: "UCartist"))
+
+        let mix = ArtistMix(playlistId: "PLmix", name: "", artists: [
+            MixArtist(id: "UCone", name: "One", thumbnailURL: nil),
+            MixArtist(id: "MPLAUCtwo", name: "Two", thumbnailURL: nil),
+            MixArtist(id: "nolink", name: "Three", thumbnailURL: nil),
+        ])
+        // Every artist of a mix with a page is offered, the first one first.
+        #expect(MixesShelf.entity(for: mix).authorEntities.map(\.target) == [.artist(id: "UCone"), .artist(id: "UCtwo")])
+    }
+
     @Test func onlyA404MeansNoPodcastsPage() {
         #expect(PodcastsModel.isNotFound(YTMusicError.apiError(message: "HTTP 404", code: 404)))
         #expect(!PodcastsModel.isNotFound(YTMusicError.apiError(message: "HTTP 500", code: 500)))

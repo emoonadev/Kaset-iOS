@@ -934,6 +934,16 @@
         }
       }
     },
+    "Go to Artist" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aller à l’artiste"
+          }
+        }
+      }
+    },
     "Haptic feedback" : {
       "extractionState" : "stale",
       "localizations" : {

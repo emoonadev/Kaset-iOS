@@ -125,9 +125,11 @@ struct AuthorSubtitle: View {
     let font: Font
 
     @State private var isHovering = false
+    @State private var isChoosingAuthor = false
 
     var body: some View {
-        if let author = self.entity.authorEntity, let openEntity {
+        let authors = self.entity.authorEntities
+        if let first = authors.first, let openEntity {
             Text(self.text)
                 .font(self.font)
                 .foregroundStyle(.secondary)
@@ -135,10 +137,18 @@ struct AuthorSubtitle: View {
                 .lineLimit(1)
                 .contentShape(Rectangle())
                 // The card is a button or a link: a plain tap gesture would lose to it.
-                .highPriorityGesture(TapGesture().onEnded { openEntity(author) })
+                .highPriorityGesture(TapGesture().onEnded {
+                    if authors.count == 1 { openEntity(first) } else { self.isChoosingAuthor = true }
+                })
                 .onHover { self.isHovering = $0 }
-                .help(Text("Go to \(author.title)"))
-                .accessibilityAction(named: Text("Go to \(author.title)")) { openEntity(author) }
+                .help(authors.count == 1 ? Text("Go to \(first.title)") : Text("Go to Artist"))
+                .accessibilityAction(named: Text("Go to \(first.title)")) { openEntity(first) }
+                // Several authors (an artist mix): pick whose page to open.
+                .confirmationDialog("Go to Artist", isPresented: self.$isChoosingAuthor) {
+                    ForEach(authors) { author in
+                        Button(author.title) { openEntity(author) }
+                    }
+                }
         } else {
             Text(self.text)
                 .font(self.font)

@@ -38,10 +38,20 @@ struct MediaEntity: Identifiable, Hashable {
     let target: Target
     let isCircular: Bool
     var author: Author?
+    /// More authors named in the subtitle (an artist mix lists several artists).
+    var otherAuthors: [Author] = []
 
     /// The author's page, as an entity to open.
     var authorEntity: MediaEntity? {
-        guard let author else { return nil }
+        self.author.map(Self.page(of:))
+    }
+
+    /// Every author's page, the main author first.
+    var authorEntities: [MediaEntity] {
+        ((self.author.map { [$0] } ?? []) + self.otherAuthors).map(Self.page(of:))
+    }
+
+    private static func page(of author: Author) -> MediaEntity {
         var isArtist = false
         if case .artist = author.target { isArtist = true }
         return MediaEntity(

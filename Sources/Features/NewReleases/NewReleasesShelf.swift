@@ -25,7 +25,8 @@ struct NewReleasesShelf: View {
         return MediaEntity(
             id: "new-release-\(release.id)", title: release.title,
             subtitle: release.artistName.isEmpty ? detail : "\(release.artistName) · \(detail)",
-            thumbnailURL: release.thumbnailURL, target: target, isCircular: false
+            thumbnailURL: release.thumbnailURL, target: target, isCircular: false,
+            author: .first(of: [Artist(id: release.artistId, name: release.artistName)])
         )
     }
 }
