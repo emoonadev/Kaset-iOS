@@ -17,6 +17,8 @@ final class AppEnvironment {
     let mixes = ArtistMixLibrary()
     let newReleases = NewReleaseWatcher()
     let listening = ListeningHistory()
+    /// Whether the Podcasts discovery page exists in the account's region.
+    let podcastsAvailability = PodcastsAvailability()
     #if os(macOS)
     @ObservationIgnored let trackNotifier = TrackChangeNotifier()
     #endif
@@ -41,6 +43,16 @@ final class AppEnvironment {
     /// Bumped after every switch of Google account or channel, so screens showing personal
     /// content (and the account pickers) reload.
     private(set) var accountRevision = 0
+
+    /// Who the API currently answers for: changes on sign-in, sign-out and account switches.
+    var contentScope: String { "\(self.auth.state)-\(self.accountRevision)" }
+
+    /// Probes the Podcasts discovery page once per account (see `PodcastsAvailability`).
+    func probePodcasts() async {
+        // Unknown auth: the session is still being restored, so the answer would be a guest's.
+        guard self.auth.state != .unknown else { return }
+        await self.podcastsAvailability.probe(client: self.client, scope: self.contentScope)
+    }
 
     var isPlaybackDebugPresented = false
 
@@ -128,6 +140,14 @@ final class AppEnvironment {
                 } else if let first = detail.tracks.first(where: \.isPlayable) {
                     self.player.play(videoId: first.videoId, playlistId: "RDAMVM\(first.videoId)")
                 }
+            }
+        case let .episode(videoId):
+            self.player.play(videoId: videoId)
+        case let .podcast(id):
+            // A show plays from its newest episode.
+            Task {
+                guard let episode = try? await self.client.getPodcastShow(browseId: id).episodes.first else { return }
+                self.player.play(videoId: episode.id)
             }
         case .artist, .mood, .unsupported:
             break

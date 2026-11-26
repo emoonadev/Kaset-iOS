@@ -137,7 +137,7 @@ struct MediaActions<Content: View>: View {
     @ViewBuilder
     private var actions: some View {
         switch self.entity.target {
-        case .song:
+        case .song, .episode:
             Button(action: self.play) { self.content }
                 .buttonStyle(.plain)
                 .neutralMenuTint()
@@ -158,6 +158,13 @@ struct MediaActions<Content: View>: View {
         case .artist, .mood:
             NavigationLink(value: self.entity) { self.content }
                 .buttonStyle(.plain)
+        case .podcast:
+            NavigationLink(value: self.entity) { self.content }
+                .buttonStyle(.plain)
+                .neutralMenuTint()
+                .contextMenu {
+                    Button("Play Latest Episode", systemImage: "play.fill") { self.environment.playEntity(self.entity) }
+                }
         case .unsupported:
             self.content.opacity(0.5)
         }
@@ -183,12 +190,15 @@ struct MediaActions<Content: View>: View {
             Button("Add to Queue", systemImage: "text.append") {
                 self.environment.player.addToQueue(videoId: videoId)
             }
-            Button("Start Radio", systemImage: "dot.radiowaves.left.and.right") {
-                self.environment.player.startRadio(videoId: videoId)
-            }
-            if self.isSignedIn {
-                Button("Add to Playlist…", systemImage: "text.badge.plus") {
-                    self.isAddToPlaylistPresented = true
+            // A radio or a playlist built from podcast episodes is not useful.
+            if case .song = self.entity.target {
+                Button("Start Radio", systemImage: "dot.radiowaves.left.and.right") {
+                    self.environment.player.startRadio(videoId: videoId)
+                }
+                if self.isSignedIn {
+                    Button("Add to Playlist…", systemImage: "text.badge.plus") {
+                        self.isAddToPlaylistPresented = true
+                    }
                 }
             }
         }

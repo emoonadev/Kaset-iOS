@@ -11,7 +11,9 @@ extension View {
                 ArtistDetailView(id: id, fallbackName: entity.title)
             case let .mood(browseId, params):
                 MoodCategoryView(browseId: browseId, params: params, title: entity.title)
-            case .song, .unsupported:
+            case let .podcast(id):
+                PodcastShowView(id: id, fallbackTitle: entity.title, thumbnailURL: entity.thumbnailURL)
+            case .song, .episode, .unsupported:
                 ContentUnavailableView(entity.title, systemImage: "music.note")
             }
         }

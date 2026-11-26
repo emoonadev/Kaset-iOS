@@ -24,7 +24,7 @@ struct HomeView: View {
         .onChange(of: NotificationRouter.shared.pendingEntity, initial: true) { _, entity in
             guard let entity else { return }
             NotificationRouter.shared.pendingEntity = nil
-            if case .song = entity.target {
+            if entity.isPlayableItem {
                 self.environment.playEntity(entity)
                 self.environment.isNowPlayingPresented = true
             } else {

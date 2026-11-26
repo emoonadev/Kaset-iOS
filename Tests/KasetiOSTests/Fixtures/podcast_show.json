@@ -1,0 +1,455 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "musicResponsiveHeaderRenderer": {
+                      "thumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://example.com/fixture-show-small.jpg",
+                                "width": 60,
+                                "height": 60
+                              },
+                              {
+                                "url": "https://example.com/fixture-show.jpg",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                        }
+                      },
+                      "buttons": [
+                        {
+                          "buttonRenderer": {
+                            "style": "STYLE_DEFAULT",
+                            "command": {
+                              "shareEntityEndpoint": {
+                                "serializedShareEntity": "fixture"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "toggleButtonRenderer": {
+                            "isToggled": true,
+                            "isDisabled": false,
+                            "defaultText": {
+                              "runs": [
+                                {
+                                  "text": "Save to library"
+                                }
+                              ]
+                            },
+                            "toggledText": {
+                              "runs": [
+                                {
+                                  "text": "Saved to library"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "menuRenderer": {
+                            "items": []
+                          }
+                        }
+                      ],
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Fixture Show"
+                          }
+                        ]
+                      },
+                      "subtitle": {},
+                      "straplineTextOne": {
+                        "runs": [
+                          {
+                            "text": "Fixture Network",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCfixture-channel",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "straplineThumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://example.com/fixture-network-small.jpg",
+                                "width": 60,
+                                "height": 60
+                              },
+                              {
+                                "url": "https://example.com/fixture-network.jpg",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                        }
+                      },
+                      "description": {
+                        "musicDescriptionShelfRenderer": {
+                          "header": {
+                            "runs": [
+                              {
+                                "text": "Fixture Show"
+                              }
+                            ]
+                          },
+                          "description": {
+                            "runs": [
+                              {
+                                "text": "A show used by the tests."
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "secondaryContents": {
+        "sectionListRenderer": {
+          "contents": [
+            {
+              "musicShelfRenderer": {
+                "contents": [
+                  {
+                    "musicMultiRowListItemRenderer": {
+                      "thumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://example.com/fixture-episode-1-small.jpg",
+                                "width": 60,
+                                "height": 60
+                              },
+                              {
+                                "url": "https://example.com/fixture-episode-1.jpg",
+                                "width": 480,
+                                "height": 480
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                        }
+                      },
+                      "onTap": {
+                        "watchEndpoint": {
+                          "videoId": "fixture-episode-1",
+                          "params": "fixture-params",
+                          "watchEndpointMusicSupportedConfigs": {
+                            "watchEndpointMusicConfig": {
+                              "musicVideoType": "MUSIC_VIDEO_TYPE_PODCAST_EPISODE"
+                            }
+                          }
+                        }
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "22K views"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "17h ago"
+                          }
+                        ]
+                      },
+                      "playbackProgress": {
+                        "musicPlaybackProgressRenderer": {
+                          "playbackProgressPercentage": 0,
+                          "playbackProgressText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "27 min"
+                              }
+                            ]
+                          },
+                          "durationText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "27 min"
+                              }
+                            ]
+                          },
+                          "playedText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "Played"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Newest Episode"
+                          }
+                        ]
+                      },
+                      "description": {
+                        "runs": [
+                          {
+                            "text": "Description of Newest Episode."
+                          }
+                        ]
+                      },
+                      "displayStyle": "MUSIC_MULTI_ROW_LIST_ITEM_DISPLAY_STYLE_DETAILED"
+                    }
+                  },
+                  {
+                    "musicMultiRowListItemRenderer": {
+                      "thumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://example.com/fixture-episode-2-small.jpg",
+                                "width": 60,
+                                "height": 60
+                              },
+                              {
+                                "url": "https://example.com/fixture-episode-2.jpg",
+                                "width": 480,
+                                "height": 480
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                        }
+                      },
+                      "onTap": {
+                        "watchEndpoint": {
+                          "videoId": "fixture-episode-2",
+                          "params": "fixture-params",
+                          "watchEndpointMusicSupportedConfigs": {
+                            "watchEndpointMusicConfig": {
+                              "musicVideoType": "MUSIC_VIDEO_TYPE_PODCAST_EPISODE"
+                            }
+                          }
+                        }
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "40K views"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "1d ago"
+                          }
+                        ]
+                      },
+                      "playbackProgress": {
+                        "musicPlaybackProgressRenderer": {
+                          "playbackProgressPercentage": 40,
+                          "playbackProgressText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "1:02:03"
+                              }
+                            ]
+                          },
+                          "durationText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "1:02:03"
+                              }
+                            ]
+                          },
+                          "playedText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "Played"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Half Played Episode"
+                          }
+                        ]
+                      },
+                      "description": {
+                        "runs": [
+                          {
+                            "text": "Description of Half Played Episode."
+                          }
+                        ]
+                      },
+                      "displayStyle": "MUSIC_MULTI_ROW_LIST_ITEM_DISPLAY_STYLE_DETAILED"
+                    }
+                  },
+                  {
+                    "musicMultiRowListItemRenderer": {
+                      "thumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://example.com/fixture-episode-3-small.jpg",
+                                "width": 60,
+                                "height": 60
+                              },
+                              {
+                                "url": "https://example.com/fixture-episode-3.jpg",
+                                "width": 480,
+                                "height": 480
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                        }
+                      },
+                      "onTap": {
+                        "watchEndpoint": {
+                          "videoId": "fixture-episode-3",
+                          "params": "fixture-params",
+                          "watchEndpointMusicSupportedConfigs": {
+                            "watchEndpointMusicConfig": {
+                              "musicVideoType": "MUSIC_VIDEO_TYPE_PODCAST_EPISODE"
+                            }
+                          }
+                        }
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "90K views"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "Nov 2, 2026"
+                          }
+                        ]
+                      },
+                      "playbackProgress": {
+                        "musicPlaybackProgressRenderer": {
+                          "playbackProgressPercentage": 100,
+                          "playbackProgressText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "45 min"
+                              }
+                            ]
+                          },
+                          "durationText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "45 min"
+                              }
+                            ]
+                          },
+                          "playedText": {
+                            "runs": [
+                              {
+                                "text": " • "
+                              },
+                              {
+                                "text": "Played"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Played Episode"
+                          }
+                        ]
+                      },
+                      "description": {
+                        "runs": [
+                          {
+                            "text": "Description of Played Episode."
+                          }
+                        ]
+                      },
+                      "displayStyle": "MUSIC_MULTI_ROW_LIST_ITEM_DISPLAY_STYLE_DETAILED"
+                    }
+                  }
+                ],
+                "continuations": [
+                  {
+                    "nextContinuationData": {
+                      "continuation": "fixture-episodes-token"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

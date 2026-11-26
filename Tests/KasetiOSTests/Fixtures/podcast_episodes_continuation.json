@@ -1,0 +1,117 @@
+{
+  "continuationContents": {
+    "musicShelfContinuation": {
+      "contents": [
+        {
+          "musicMultiRowListItemRenderer": {
+            "thumbnail": {
+              "musicThumbnailRenderer": {
+                "thumbnail": {
+                  "thumbnails": [
+                    {
+                      "url": "https://example.com/fixture-episode-4-small.jpg",
+                      "width": 60,
+                      "height": 60
+                    },
+                    {
+                      "url": "https://example.com/fixture-episode-4.jpg",
+                      "width": 480,
+                      "height": 480
+                    }
+                  ]
+                },
+                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+              }
+            },
+            "onTap": {
+              "watchEndpoint": {
+                "videoId": "fixture-episode-4",
+                "params": "fixture-params",
+                "watchEndpointMusicSupportedConfigs": {
+                  "watchEndpointMusicConfig": {
+                    "musicVideoType": "MUSIC_VIDEO_TYPE_PODCAST_EPISODE"
+                  }
+                }
+              }
+            },
+            "subtitle": {
+              "runs": [
+                {
+                  "text": "5K views"
+                },
+                {
+                  "text": " • "
+                },
+                {
+                  "text": "Oct 1, 2026"
+                }
+              ]
+            },
+            "playbackProgress": {
+              "musicPlaybackProgressRenderer": {
+                "playbackProgressPercentage": 0,
+                "playbackProgressText": {
+                  "runs": [
+                    {
+                      "text": " • "
+                    },
+                    {
+                      "text": "1 hr 5 min"
+                    }
+                  ]
+                },
+                "durationText": {
+                  "runs": [
+                    {
+                      "text": " • "
+                    },
+                    {
+                      "text": "1 hr 5 min"
+                    }
+                  ]
+                },
+                "playedText": {
+                  "runs": [
+                    {
+                      "text": " • "
+                    },
+                    {
+                      "text": "Played"
+                    }
+                  ]
+                }
+              }
+            },
+            "title": {
+              "runs": [
+                {
+                  "text": "Older Episode"
+                }
+              ]
+            },
+            "description": {
+              "runs": [
+                {
+                  "text": "Description of Older Episode."
+                }
+              ]
+            },
+            "displayStyle": "MUSIC_MULTI_ROW_LIST_ITEM_DISPLAY_STYLE_DETAILED"
+          }
+        },
+        {
+          "musicMultiRowListItemRenderer": {
+            "title": {
+              "runs": [
+                {
+                  "text": "No video"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

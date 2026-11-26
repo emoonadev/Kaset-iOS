@@ -9,6 +9,10 @@ struct MediaEntity: Identifiable, Hashable {
         case album(id: String)
         case artist(id: String)
         case mood(browseId: String, params: String?)
+        /// A podcast show (`MPSPP…`): opens its page.
+        case podcast(id: String)
+        /// A podcast episode: plays on its own, without a radio queue.
+        case episode(videoId: String)
         case unsupported
 
         /// Playlists and albums: playing one from a cover starts a queue worth showing.
@@ -28,8 +32,18 @@ struct MediaEntity: Identifiable, Hashable {
     let isCircular: Bool
 
     var videoId: String? {
-        if case let .song(videoId) = self.target { return videoId }
-        return nil
+        switch self.target {
+        case let .song(videoId), let .episode(videoId): videoId
+        default: nil
+        }
+    }
+
+    /// Songs and episodes play on tap; everything else opens a page.
+    var isPlayableItem: Bool {
+        switch self.target {
+        case .song, .episode: true
+        default: false
+        }
     }
 
     var kindLabel: String {
@@ -39,6 +53,8 @@ struct MediaEntity: Identifiable, Hashable {
         case .album: "Album"
         case .artist: "Artist"
         case .mood: "Mood"
+        case .podcast: "Podcast"
+        case .episode: "Episode"
         case .unsupported: ""
         }
     }
@@ -51,9 +67,32 @@ extension MediaEntity {
             title: song.title,
             subtitle: song.artistsDisplay.isEmpty ? nil : song.artistsDisplay,
             thumbnailURL: song.thumbnailURL,
-            target: .song(videoId: song.videoId),
+            // Episodes listed in Home shelves arrive as songs.
+            target: song.musicVideoType == .podcastEpisode ? .episode(videoId: song.videoId) : .song(videoId: song.videoId),
             isCircular: false
         )
+    }
+
+    init(_ show: PodcastShow, id: String? = nil) {
+        self.init(
+            id: id ?? "podcast-\(show.id)", title: show.title, subtitle: show.author,
+            thumbnailURL: show.thumbnailURL, target: .podcast(id: show.id), isCircular: false
+        )
+    }
+
+    init(_ episode: PodcastEpisode, id: String? = nil) {
+        self.init(
+            id: id ?? "episode-\(episode.id)", title: episode.title,
+            subtitle: [episode.showTitle, episode.publishedDate].compactMap(\.self).joined(separator: " · ").nilIfEmpty,
+            thumbnailURL: episode.thumbnailURL, target: .episode(videoId: episode.id), isCircular: false
+        )
+    }
+
+    init(_ item: PodcastSectionItem) {
+        switch item {
+        case let .show(show): self.init(show)
+        case let .episode(episode): self.init(episode)
+        }
     }
 
     init(_ item: HomeSectionItem) {
@@ -104,11 +143,16 @@ extension MediaEntity {
                 id: item.id, title: playlist.title, subtitle: item.subtitle,
                 thumbnailURL: playlist.thumbnailURL, target: .playlist(id: playlist.id), isCircular: false
             )
-        case .podcastShow, .podcastEpisode:
-            // Podcasts are out of v1.
+        case let .podcastShow(show):
             self.init(
-                id: item.id, title: item.title, subtitle: item.subtitle,
-                thumbnailURL: item.thumbnailURL, target: .unsupported, isCircular: false
+                id: item.id, title: show.title, subtitle: item.subtitle,
+                thumbnailURL: show.thumbnailURL,
+                target: show.hasNavigableId ? .podcast(id: show.id) : .unsupported, isCircular: false
+            )
+        case let .podcastEpisode(episode):
+            self.init(
+                id: item.id, title: episode.title, subtitle: item.subtitle,
+                thumbnailURL: episode.thumbnailURL, target: .episode(videoId: episode.id), isCircular: false
             )
         }
     }
@@ -147,7 +191,7 @@ extension MediaEntity {
     /// Whether the player is currently on this entity (a song, or a playlist/album queue).
     func isCurrent(in identity: PlaybackIdentity) -> Bool {
         switch self.target {
-        case let .song(videoId):
+        case let .song(videoId), let .episode(videoId):
             return identity.videoId == videoId
         case let .playlist(id):
             guard let list = identity.listId else { return false }
@@ -161,4 +205,8 @@ extension MediaEntity {
             return false
         }
     }
+}
+
+private extension String {
+    var nilIfEmpty: String? { self.isEmpty ? nil : self }
 }

@@ -58,10 +58,25 @@ extension YTMusicClient {
             if !dedicated.isEmpty { artists = dedicated }
         }
 
+        // Saved podcasts: the dedicated list when it answers, the landing preview otherwise.
+        var podcastShows = landing.podcastShows
+        if let data = try? await self.request(
+            "browse", body: ["browseId": Self.libraryPodcastsBrowseId], ttl: APICache.TTL.library
+        ) {
+            let dedicated = PlaylistParser.parseLibraryContent(data).podcastShows
+            if !dedicated.isEmpty { podcastShows = Self.mergedPodcastShows(dedicated, landing.podcastShows) }
+        }
+
         return PlaylistParser.LibraryContent(
             playlists: playlists, albums: albums, artists: artists,
-            podcastShows: [], uploadedSongsPlaylist: nil
+            podcastShows: podcastShows, uploadedSongsPlaylist: nil
         )
+    }
+
+    /// Dedicated shows first, then landing-only ones, without duplicates.
+    nonisolated static func mergedPodcastShows(_ dedicated: [PodcastShow], _ fallback: [PodcastShow]) -> [PodcastShow] {
+        var seen = Set<String>()
+        return (dedicated + fallback).filter { seen.insert($0.id).inserted }
     }
 
     // MARK: - Liked songs

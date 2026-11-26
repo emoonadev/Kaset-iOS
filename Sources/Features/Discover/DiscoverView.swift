@@ -1,22 +1,26 @@
 import SwiftUI
 
-/// Explore · Charts · Moods · New releases. Every segment keeps its own model and scroll
-/// position: segments are loaded the first time they are shown and then only hidden.
+/// Explore · Charts · Moods · New releases · Podcasts. Every segment keeps its own model and
+/// scroll position: segments are loaded the first time they are shown and then only hidden.
+/// Podcasts is left out in regions where YouTube Music does not offer it.
 struct DiscoverView: View {
     enum Segment: String, CaseIterable, Identifiable {
         case explore = "Explore"
         case charts = "Charts"
         case moods = "Moods"
         case newReleases = "New"
+        case podcasts = "Podcasts"
 
         var id: String { self.rawValue }
 
-        var type: PaginatedContentType {
+        /// Browse surface behind the segment; Podcasts has its own page model.
+        var type: PaginatedContentType? {
             switch self {
             case .explore: .explore
             case .charts: .charts
             case .moods: .moodsAndGenres
             case .newReleases: .newReleases
+            case .podcasts: nil
             }
         }
     }
@@ -24,22 +28,27 @@ struct DiscoverView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var selection: Segment = .explore
     @State private var models: [Segment: BrowsePageModel] = [:]
+    @State private var podcasts: PodcastsModel?
     @State private var visited: Set<Segment> = [.explore]
+
+    private var segments: [Segment] {
+        Segment.allCases.filter { $0 != .podcasts || !self.environment.podcastsAvailability.isHidden }
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 Picker("Section", selection: self.$selection) {
-                    ForEach(Segment.allCases) { Text($0.rawValue).tag($0) }
+                    ForEach(self.segments) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.bottom, 8)
 
                 ZStack {
-                    ForEach(Segment.allCases) { segment in
-                        if self.visited.contains(segment), let model = self.models[segment] {
-                            BrowsePageView(model: model)
+                    ForEach(self.segments) { segment in
+                        if self.visited.contains(segment) {
+                            self.page(for: segment)
                                 .opacity(self.selection == segment ? 1 : 0)
                                 .allowsHitTesting(self.selection == segment)
                         }
@@ -52,10 +61,46 @@ struct DiscoverView: View {
         }
         .task(id: self.selection) {
             self.visited.insert(self.selection)
-            if self.models[self.selection] == nil {
-                self.models[self.selection] = BrowsePageModel(type: self.selection.type, client: self.environment.client)
+            if let type = self.selection.type {
+                if self.models[self.selection] == nil {
+                    self.models[self.selection] = BrowsePageModel(type: type, client: self.environment.client)
+                }
+                await self.models[self.selection]?.load()
+            } else {
+                let model = self.podcastsModel()
+                await model.load()
             }
-            await self.models[self.selection]?.load()
         }
+        .task(id: self.environment.contentScope) {
+            await self.environment.probePodcasts()
+        }
+        .onChange(of: self.environment.podcastsAvailability.isHidden) { _, isHidden in
+            if isHidden, self.selection == .podcasts { self.selection = .explore }
+        }
+        .onChange(of: self.environment.contentScope) {
+            // Another account: its podcasts page is loaded again when shown.
+            self.podcasts = nil
+            self.visited.remove(.podcasts)
+            if self.selection == .podcasts {
+                self.visited.insert(.podcasts)
+                Task { await self.podcastsModel().load() }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func page(for segment: Segment) -> some View {
+        if segment == .podcasts {
+            if let podcasts { PodcastsView(model: podcasts) }
+        } else if let model = self.models[segment] {
+            BrowsePageView(model: model)
+        }
+    }
+
+    private func podcastsModel() -> PodcastsModel {
+        if let podcasts { return podcasts }
+        let model = PodcastsModel(client: self.environment.client, availability: self.environment.podcastsAvailability)
+        self.podcasts = model
+        return model
     }
 }

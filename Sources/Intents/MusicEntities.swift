@@ -56,7 +56,7 @@ struct MusicItemEntity: AppEntity, Identifiable {
 }
 
 extension MusicItemEntity {
-    /// `nil` for what the app cannot open from outside (moods, podcasts).
+    /// `nil` for what the app cannot open from outside (moods).
     init?(_ entity: MediaEntity) {
         guard let id = Self.identifier(for: entity.target) else { return nil }
         self.init(id: id, title: entity.title, subtitle: entity.subtitle, thumbnailURL: entity.thumbnailURL)
@@ -84,6 +84,8 @@ extension MusicItemEntity {
         case let .album(id): "album:\(id)"
         case let .artist(id): "artist:\(id)"
         case let .playlist(id): "playlist:\(id)"
+        case let .podcast(id): "podcast:\(id)"
+        case let .episode(videoId): "episode:\(videoId)"
         case .mood, .unsupported: nil
         }
     }
@@ -97,6 +99,8 @@ extension MusicItemEntity {
         case "album": return .album(id: value)
         case "artist": return .artist(id: value)
         case "playlist": return .playlist(id: value)
+        case "podcast": return .podcast(id: value)
+        case "episode": return .episode(videoId: value)
         default: return nil
         }
     }

@@ -178,7 +178,9 @@ struct LibraryContentView: View {
                     LoadFailureView(message: message) { Task { await model.load() } }
                 case .loaded:
                     if let content = model.content {
-                        if content.playlists.isEmpty, content.albums.isEmpty, content.artists.isEmpty {
+                        if content.playlists.isEmpty, content.albums.isEmpty, content.artists.isEmpty,
+                           content.podcastShows.isEmpty
+                        {
                             ContentUnavailableView("Your library is empty", systemImage: "music.note.list")
                         } else {
                             ScrollView {
@@ -186,6 +188,7 @@ struct LibraryContentView: View {
                                     self.section(String(localized: "Playlists"), content.playlists.map(MediaEntity.init))
                                     self.section(String(localized: "Albums"), content.albums.map(MediaEntity.init))
                                     self.section(String(localized: "Artists"), content.artists.map(MediaEntity.init))
+                                    self.section(String(localized: "Podcasts"), content.podcastShows.map { MediaEntity($0) })
                                 }
                                 .padding(.vertical)
                             }

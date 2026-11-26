@@ -118,8 +118,12 @@ Comfortable with Xcode? Build it yourself, see [Build and run](#build-and-run).
 
 - **Home, Discover, Collections, Search** tabs in the Apple Music layout, with the mini player as the
   tab bar accessory (full pill, compact inline when the bar minimizes).
-- **Discover:** Explore, Charts, Moods & genres, New.
-- **Collections:** Library (playlists, albums, artists), Liked music, History.
+- **Discover:** Explore, Charts, Moods & genres, New, Podcasts.
+- **Podcasts:** discovery page, show pages (description, save to library, newest episodes with
+  date, duration and listening progress), podcast and episode filters in Search, podcasts on
+  artist pages. Episodes play on their own, without a radio queue. The Podcasts page hides
+  itself in regions where YouTube Music does not offer it.
+- **Collections:** Library (playlists, albums, artists, saved podcasts), Liked music, History.
 - **Detail pages** for playlists, albums and artists (top songs, discography, related artists, follow, radio, shuffle).
 - **Now Playing** modelled on Apple Music: artwork-tinted background, scrubber, system volume,
   like, lyrics, AirPlay, queue (jump to, remove, drag to reorder), shuffle and repeat.
@@ -139,7 +143,7 @@ Comfortable with Xcode? Build it yourself, see [Build and run](#build-and-run).
 The `KasetMac` target shares the InnerTube client, playback engine and feature screens with
 iOS, with a desktop layout:
 
-- Sidebar navigation (Search, Home, Discover, Collection, your playlists) and account switcher.
+- Sidebar navigation (Search, Home, Discover with Podcasts, Collection, your playlists) and account switcher.
 - Player bar at the bottom of the content, with like, AirPlay, shuffle, repeat and volume.
 - Lyrics and queue in a panel on the right.
 - Paging arrows on horizontal shelves, keyboard and trackpad friendly.
@@ -231,7 +235,9 @@ See the [roadmap](ROADMAP.md) for what is planned next.
 - Playback depends on selectors and behaviour of the YouTube Music web page. Shuffle/repeat
   state, queue jump/remove and "add to queue" are best effort and can break when the page changes.
 - Queue reordering works by rewriting the affected part of the queue through the page's own menus (the page has no reorder primitive), so moving an entry far down the queue is slow.
-- Podcasts, video mode, scrobbling and AI features of the macOS app are out of scope for v1.
+- Video mode, scrobbling and AI features of the macOS app are out of scope for v1.
+- Podcast episodes resume where YouTube Music left them, but the progress shown on show pages is
+  the one YouTube Music reports when the page loads; it does not move while an episode plays.
 - Ad skipping is on by default and may go against YouTube's terms of service; it can be turned off in Settings.
 
 ## Contributing

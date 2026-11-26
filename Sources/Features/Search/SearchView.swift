@@ -171,14 +171,15 @@ final class SearchViewModel {
         case .album, .audiobook: .albums
         case .artist, .profile: .artists
         case .playlist: .playlists
-        case .podcastShow, .podcastEpisode: nil
+        case .podcastShow: .podcasts
+        case .podcastEpisode: .episodes
         }
     }
 
     /// The "All" tab: results grouped by kind, server order kept inside each group.
     var groupedAll: [(filter: SearchFilter, items: [SearchResultItem])] {
         let items = self.buckets[.all]?.items ?? []
-        return [SearchFilter.songs, .artists, .albums, .playlists, .videos].compactMap { filter in
+        return [SearchFilter.songs, .artists, .albums, .playlists, .videos, .podcasts, .episodes].compactMap { filter in
             let matching = items.filter { Self.filter(for: $0) == filter }
             return matching.isEmpty ? nil : (filter, matching)
         }
@@ -324,7 +325,7 @@ struct SearchContent: View {
         }
     }
 
-    /// Segmented control with symbols only: six titles would not fit one line. The selected
+    /// Segmented control with symbols only: eight titles would not fit one line. The selected
     /// kind's name is announced to VoiceOver and shown as the list's heading.
     private var scopePicker: some View {
         Picker("Kind", selection: Binding(
@@ -408,6 +409,8 @@ struct SearchContent: View {
             TrackRow(song: song) {
                 self.environment.player.play(videoId: song.videoId, playlistId: "RDAMVM\(song.videoId)")
             }
+        case let .podcastEpisode(episode):
+            EpisodeRow(episode: episode, showsShowTitle: true)
         default:
             let entity = MediaEntity(item)
             MediaActions(entity: entity) { MediaRow(entity: entity) }

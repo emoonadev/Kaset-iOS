@@ -29,6 +29,69 @@ struct MediaEntityTests {
     }
 }
 
+@MainActor
+struct PodcastEntityTests {
+    private let show = PodcastShow(
+        id: "MPSPPLshow", title: "Show", author: "Network", description: nil, thumbnailURL: nil, episodeCount: nil
+    )
+    private let episode = PodcastEpisode(
+        id: "ep1", title: "Episode", showTitle: "Show", showBrowseId: "MPSPPLshow", description: nil,
+        thumbnailURL: nil, publishedDate: "2d ago", duration: "36 min", durationSeconds: 2160,
+        playbackProgress: 0, isPlayed: false
+    )
+
+    @Test func showsOpenTheirPage() {
+        let entity = MediaEntity(SearchResultItem.podcastShow(self.show))
+        #expect(entity.target == .podcast(id: "MPSPPLshow"))
+        #expect(!entity.isPlayableItem)
+        #expect(entity.videoId == nil)
+    }
+
+    @Test func showsWithoutABrowseIdStayUnsupported() {
+        let show = PodcastShow(id: "UCchannel", title: "Show", author: nil, description: nil, thumbnailURL: nil, episodeCount: nil)
+        #expect(MediaEntity(SearchResultItem.podcastShow(show)).target == .unsupported)
+    }
+
+    @Test func episodesPlayOnTheirOwn() {
+        let entity = MediaEntity(PodcastSectionItem.episode(self.episode))
+        #expect(entity.target == .episode(videoId: "ep1"))
+        #expect(entity.isPlayableItem)
+        #expect(entity.videoId == "ep1")
+        #expect(entity.subtitle == "Show · 2d ago")
+        let identity = PlaybackIdentity(videoId: "ep1", listId: nil, album: nil, isPlaying: true)
+        #expect(entity.isCurrent(in: identity))
+    }
+
+    @Test func homeEpisodesBecomeEpisodes() {
+        let song = Song(
+            id: "ep2", title: "Episode", artists: [], album: nil, duration: nil, thumbnailURL: nil,
+            videoId: "ep2", musicVideoType: .podcastEpisode
+        )
+        #expect(MediaEntity(HomeSectionItem.song(song)).target == .episode(videoId: "ep2"))
+    }
+
+    @Test func searchFiltersCoverPodcasts() {
+        #expect(SearchViewModel.filter(for: .podcastShow(self.show)) == .podcasts)
+        #expect(SearchViewModel.filter(for: .podcastEpisode(self.episode)) == .episodes)
+        #expect(SearchFilter.podcasts.params != nil)
+        #expect(SearchFilter.episodes.params != nil)
+    }
+
+    @Test func intentIdentifiersRoundTrip() {
+        for target in [MediaEntity.Target.podcast(id: "MPSPPLshow"), .episode(videoId: "ep1")] {
+            let id = MusicItemEntity.identifier(for: target)
+            #expect(id.flatMap(MusicItemEntity.target(for:)) == target)
+        }
+    }
+
+    @Test func onlyA404HidesPodcasts() {
+        #expect(PodcastsAvailability.isRegionUnavailable(YTMusicError.apiError(message: "HTTP 404", code: 404)))
+        #expect(!PodcastsAvailability.isRegionUnavailable(YTMusicError.apiError(message: "HTTP 500", code: 500)))
+        #expect(!PodcastsAvailability.isRegionUnavailable(YTMusicError.notAuthenticated))
+        #expect(!PodcastsAvailability.isRegionUnavailable(CancellationError()))
+    }
+}
+
 struct NowPlayingIndicatorTests {
     private func entity(_ target: MediaEntity.Target, title: String = "T") -> MediaEntity {
         MediaEntity(id: "x", title: title, subtitle: nil, thumbnailURL: nil, target: target, isCircular: false)

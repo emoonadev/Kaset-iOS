@@ -24,6 +24,9 @@ struct MacSidebar: View {
                 self.row(.charts)
                 self.row(.moodsAndGenres)
                 self.row(.newReleases)
+                if !self.environment.podcastsAvailability.isHidden {
+                    self.row(.podcasts)
+                }
             }
 
             if self.isSignedIn {
@@ -53,6 +56,13 @@ struct MacSidebar: View {
         }
         .onChange(of: self.environment.libraryRevision) {
             Task { await self.shell.loadPlaylists(signedIn: self.isSignedIn) }
+        }
+        .task(id: self.environment.contentScope) {
+            await self.environment.probePodcasts()
+        }
+        .onChange(of: self.environment.contentScope) { self.shell.resetPodcasts() }
+        .onChange(of: self.environment.podcastsAvailability.isHidden) { _, isHidden in
+            if isHidden { self.shell.podcastsBecameUnavailable() }
         }
         .alert("New Playlist", isPresented: self.$isCreatingPlaylist) {
             TextField("Title", text: self.$newPlaylistTitle)
