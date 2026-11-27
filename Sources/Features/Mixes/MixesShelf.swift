@@ -88,9 +88,14 @@ struct MixesShelf: View {
     }
 
     static func entity(for mix: ArtistMix) -> MediaEntity {
-        MediaEntity(
+        // The subtitle names the mix's artists: it offers each one's page.
+        let authors = mix.artists
+            .filter { Artist.isNavigableId($0.id) }
+            .map { MediaEntity.Author(name: $0.name, target: .artist(id: $0.id)) }
+        return MediaEntity(
             id: "mix-\(mix.id)", title: mix.displayName, subtitle: mix.artistSummary,
-            thumbnailURL: mix.thumbnailURL, target: .playlist(id: mix.playlistId ?? ""), isCircular: false
+            thumbnailURL: mix.thumbnailURL, target: .playlist(id: mix.playlistId ?? ""), isCircular: false,
+            author: authors.first, otherAuthors: Array(authors.dropFirst())
         )
     }
 }

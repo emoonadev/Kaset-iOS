@@ -10,6 +10,8 @@ final class NowPlayingModel {
     private(set) var likeStatus: LikeStatus = .indifferent
     /// Artists of the current track, with ids, from the song metadata.
     private(set) var artists: [Artist] = []
+    /// The show of the current track when it is a podcast episode (its byline links the show).
+    private(set) var podcastShow: Artist?
     /// Lyrics of `lyricsVideoId`; `nil` until loaded.
     private(set) var lyrics: LyricResult?
     private(set) var lyricsVideoId: String?
@@ -29,11 +31,35 @@ final class NowPlayingModel {
         self.loadedVideoId = videoId
         self.likeStatus = .indifferent
         self.artists = []
+        self.podcastShow = nil
         guard let videoId else { return }
         if let song = try? await self.client.getSong(videoId: videoId), self.loadedVideoId == videoId {
             self.likeStatus = song.likeStatus ?? .indifferent
-            self.artists = song.artists.filter(\.hasNavigableId)
+            self.apply(song)
         }
+    }
+
+    private func apply(_ song: Song) {
+        self.artists = song.artists.filter(\.hasNavigableId)
+        self.podcastShow = song.artists.first { PodcastParser.isPodcastShow($0.id) }
+    }
+
+    /// Page to open for the tapped author of the current track: the show of an episode, the
+    /// artist of a song. The metadata is fetched if it has not arrived yet, so an episode never
+    /// falls through to the name search (which finds an unrelated artist of the same name).
+    func authorPage(named name: String?, videoId: String?) async -> MediaEntity? {
+        if self.podcastShow == nil, self.artists.isEmpty, let videoId,
+           let song = try? await self.client.getSong(videoId: videoId), self.loadedVideoId == videoId
+        {
+            self.apply(song)
+        }
+        if let show = self.podcastShow {
+            return MediaEntity(
+                id: "podcast-\(show.id)", title: show.name, subtitle: nil, thumbnailURL: nil,
+                target: .podcast(id: show.id), isCircular: false
+            )
+        }
+        return await self.resolveArtist(named: name).map { MediaEntity($0) }
     }
 
     /// Artist to open for a tapped name: from metadata, else the top artist search result.

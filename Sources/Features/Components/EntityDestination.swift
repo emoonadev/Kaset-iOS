@@ -3,19 +3,41 @@ import SwiftUI
 extension View {
     /// Registers the screens a `MediaEntity` or a "See all" link navigates to. Apply once per `NavigationStack`.
     func entityDestinations() -> some View {
-        self.navigationDestination(for: MediaEntity.self) { entity in
-            switch entity.target {
-            case let .album(id), let .playlist(id):
-                PlaylistDetailView(id: id, fallbackTitle: entity.title, thumbnailURL: entity.thumbnailURL)
-            case let .artist(id):
-                ArtistDetailView(id: id, fallbackName: entity.title)
-            case let .mood(browseId, params):
-                MoodCategoryView(browseId: browseId, params: params, title: entity.title)
-            case .song, .unsupported:
-                ContentUnavailableView(entity.title, systemImage: "music.note")
-            }
+        self.navigationDestination(for: MediaEntity.self) { EntityPage(entity: $0) }
+            .navigationDestination(for: SeeAllDestination.self) { SeeAllView(destination: $0) }
+    }
+
+    /// `entityDestinations()`, plus `openEntity` pushing on `path`. Apply once per `NavigationStack`
+    /// that has a path.
+    func entityNavigation(path: Binding<NavigationPath>) -> some View {
+        self.entityDestinations()
+            .environment(\.openEntity, { path.wrappedValue.append($0) })
+    }
+}
+
+extension EnvironmentValues {
+    /// Pushes a page on the enclosing navigation stack. Author links use it: they sit inside
+    /// cards that already are a button or a link, where a nested link would not get the tap.
+    @Entry var openEntity: (@MainActor (MediaEntity) -> Void)? = nil
+}
+
+/// The screen an entity opens.
+struct EntityPage: View {
+    let entity: MediaEntity
+
+    var body: some View {
+        switch self.entity.target {
+        case let .album(id), let .playlist(id):
+            PlaylistDetailView(id: id, fallbackTitle: self.entity.title, thumbnailURL: self.entity.thumbnailURL)
+        case let .artist(id):
+            ArtistDetailView(id: id, fallbackName: self.entity.title)
+        case let .mood(browseId, params):
+            MoodCategoryView(browseId: browseId, params: params, title: self.entity.title)
+        case let .podcast(id):
+            PodcastShowView(id: id, fallbackTitle: self.entity.title, thumbnailURL: self.entity.thumbnailURL)
+        case .song, .episode, .unsupported:
+            ContentUnavailableView(self.entity.title, systemImage: "music.note")
         }
-        .navigationDestination(for: SeeAllDestination.self) { SeeAllView(destination: $0) }
     }
 }
 

@@ -42,10 +42,7 @@ struct MediaCard: View {
                 .lineLimit(1)
                 .padding(.top, 2)
             if let subtitle = self.entity.subtitle {
-                Text(subtitle)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                AuthorSubtitle(entity: self.entity, text: subtitle, font: .footnote)
             }
         }
         .frame(width: self.width, alignment: .leading)
@@ -108,12 +105,56 @@ struct MediaRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(self.entity.title).font(.body).lineLimit(1)
                 if let subtitle = self.entity.subtitle {
-                    Text(subtitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                    AuthorSubtitle(entity: self.entity, text: subtitle, font: .subheadline)
                 }
             }
             Spacer(minLength: 0)
         }
         .contentShape(Rectangle())
+    }
+}
+
+/// A card's or row's subtitle. When the entity knows its author's page (artist, channel,
+/// podcast show), a tap on the subtitle opens that page; a tap anywhere else still plays or
+/// opens the card itself.
+struct AuthorSubtitle: View {
+    @Environment(\.openEntity) private var openEntity
+
+    let entity: MediaEntity
+    let text: String
+    let font: Font
+
+    @State private var isHovering = false
+    @State private var isChoosingAuthor = false
+
+    var body: some View {
+        let authors = self.entity.authorEntities
+        if let first = authors.first, let openEntity {
+            Text(self.text)
+                .font(self.font)
+                .foregroundStyle(.secondary)
+                .underline(Platform.isMac && self.isHovering)
+                .lineLimit(1)
+                .contentShape(Rectangle())
+                // The card is a button or a link: a plain tap gesture would lose to it.
+                .highPriorityGesture(TapGesture().onEnded {
+                    if authors.count == 1 { openEntity(first) } else { self.isChoosingAuthor = true }
+                })
+                .onHover { self.isHovering = $0 }
+                .help(authors.count == 1 ? Text("Go to \(first.title)") : Text("Go to Artist"))
+                .accessibilityAction(named: Text("Go to \(first.title)")) { openEntity(first) }
+                // Several authors (an artist mix): pick whose page to open.
+                .confirmationDialog("Go to Artist", isPresented: self.$isChoosingAuthor) {
+                    ForEach(authors) { author in
+                        Button(author.title) { openEntity(author) }
+                    }
+                }
+        } else {
+            Text(self.text)
+                .font(self.font)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
     }
 }
 
@@ -137,7 +178,7 @@ struct MediaActions<Content: View>: View {
     @ViewBuilder
     private var actions: some View {
         switch self.entity.target {
-        case .song:
+        case .song, .episode:
             Button(action: self.play) { self.content }
                 .buttonStyle(.plain)
                 .neutralMenuTint()
@@ -158,6 +199,13 @@ struct MediaActions<Content: View>: View {
         case .artist, .mood:
             NavigationLink(value: self.entity) { self.content }
                 .buttonStyle(.plain)
+        case .podcast:
+            NavigationLink(value: self.entity) { self.content }
+                .buttonStyle(.plain)
+                .neutralMenuTint()
+                .contextMenu {
+                    Button("Play Latest Episode", systemImage: "play.fill") { self.environment.playEntity(self.entity) }
+                }
         case .unsupported:
             self.content.opacity(0.5)
         }
@@ -183,12 +231,15 @@ struct MediaActions<Content: View>: View {
             Button("Add to Queue", systemImage: "text.append") {
                 self.environment.player.addToQueue(videoId: videoId)
             }
-            Button("Start Radio", systemImage: "dot.radiowaves.left.and.right") {
-                self.environment.player.startRadio(videoId: videoId)
-            }
-            if self.isSignedIn {
-                Button("Add to Playlist…", systemImage: "text.badge.plus") {
-                    self.isAddToPlaylistPresented = true
+            // A radio or a playlist built from podcast episodes is not useful.
+            if case .song = self.entity.target {
+                Button("Start Radio", systemImage: "dot.radiowaves.left.and.right") {
+                    self.environment.player.startRadio(videoId: videoId)
+                }
+                if self.isSignedIn {
+                    Button("Add to Playlist…", systemImage: "text.badge.plus") {
+                        self.isAddToPlaylistPresented = true
+                    }
                 }
             }
         }

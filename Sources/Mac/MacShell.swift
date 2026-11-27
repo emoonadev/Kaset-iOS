@@ -4,7 +4,7 @@ import SwiftUI
 /// Sidebar destinations, in the order of Kaset for macOS.
 enum MacSidebarItem: Hashable {
     case search, home
-    case explore, charts, moodsAndGenres, newReleases
+    case explore, charts, moodsAndGenres, newReleases, podcasts
     case library, likedMusic, history, recap
     case playlist(id: String, title: String)
 
@@ -16,6 +16,7 @@ enum MacSidebarItem: Hashable {
         case .charts: "Charts"
         case .moodsAndGenres: "Moods & Genres"
         case .newReleases: "New Releases"
+        case .podcasts: "Podcasts"
         case .library: "Library"
         case .likedMusic: "Liked Music"
         case .history: "History"
@@ -32,6 +33,7 @@ enum MacSidebarItem: Hashable {
         case .charts: "chart.line.uptrend.xyaxis"
         case .moodsAndGenres: "theatermask.and.paintbrush"
         case .newReleases: "sparkles"
+        case .podcasts: "mic"
         case .library: "square.stack"
         case .likedMusic: "heart"
         case .history: "clock"
@@ -85,6 +87,7 @@ final class MacShell {
     let nowPlaying: NowPlayingModel
     @ObservationIgnored private(set) lazy var search = SearchViewModel(client: self.client)
     @ObservationIgnored private var browseModels: [PaginatedContentType: BrowsePageModel] = [:]
+    @ObservationIgnored private var podcastsModel: PodcastsModel?
     @ObservationIgnored private let client: YTMusicClient
 
     init(client: YTMusicClient) {
@@ -117,6 +120,25 @@ final class MacShell {
         return model
     }
 
+    /// The Podcasts page, loaded once and kept like the browse pages.
+    func podcasts() -> PodcastsModel {
+        if let podcastsModel { return podcastsModel }
+        let model = PodcastsModel(client: self.client) { AppEnvironment.shared.auth.state == .signedIn }
+        self.podcastsModel = model
+        return model
+    }
+
+    func loadPodcasts(force: Bool = false) {
+        let model = self.podcasts()
+        Task { await model.load(force: force) }
+    }
+
+    /// Another account: its own podcasts page.
+    func resetPodcasts() {
+        self.podcastsModel = nil
+        if self.selection == .podcasts { self.loadPodcasts() }
+    }
+
     func path(for item: MacSidebarItem) -> Binding<NavigationPath> {
         Binding(
             get: { self.paths[item, default: NavigationPath()] },
@@ -143,6 +165,7 @@ final class MacShell {
         if let type = self.selection == .home ? .home : self.selection?.browseType {
             self.load(type, force: true)
         }
+        if self.selection == .podcasts { self.loadPodcasts(force: true) }
         if self.selection == .library { AppEnvironment.shared.libraryRevision += 1 }
         self.refreshGeneration += 1
         Task { await self.loadPlaylists(signedIn: AppEnvironment.shared.auth.state == .signedIn) }

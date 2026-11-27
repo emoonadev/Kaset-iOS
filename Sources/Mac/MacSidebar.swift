@@ -24,6 +24,7 @@ struct MacSidebar: View {
                 self.row(.charts)
                 self.row(.moodsAndGenres)
                 self.row(.newReleases)
+                self.row(.podcasts)
             }
 
             if self.isSignedIn {
@@ -54,6 +55,7 @@ struct MacSidebar: View {
         .onChange(of: self.environment.libraryRevision) {
             Task { await self.shell.loadPlaylists(signedIn: self.isSignedIn) }
         }
+        .onChange(of: self.environment.contentScope) { self.shell.resetPodcasts() }
         .alert("New Playlist", isPresented: self.$isCreatingPlaylist) {
             TextField("Title", text: self.$newPlaylistTitle)
             Button("Create") { self.createPlaylist() }

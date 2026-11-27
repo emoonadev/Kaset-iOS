@@ -105,6 +105,8 @@ struct ArtistDetailView: View {
                                 )
                             }
                         }
+                        // Shows the artist hosts; never part of the ordered sections.
+                        self.shelf(String(localized: "Podcasts"), detail.podcasts.map { MediaEntity($0) })
                         self.about(detail)
                     }
                     .padding(.vertical)

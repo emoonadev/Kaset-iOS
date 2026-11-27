@@ -17,9 +17,10 @@ struct CollectionsView: View {
     @State private var history: BrowsePageModel?
     @State private var isCreatingPlaylist = false
     @State private var newPlaylistTitle = ""
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: self.$path) {
             Group {
                 if self.environment.auth.state == .signedIn {
                     VStack(spacing: 0) {
@@ -53,7 +54,7 @@ struct CollectionsView: View {
                 }
             }
             .navigationTitle("Collections")
-            .entityDestinations()
+            .entityNavigation(path: self.$path)
             .toolbar {
                 if self.environment.auth.state == .signedIn, self.selection == .library {
                     ToolbarItem(placement: .trailingBar) {
@@ -178,7 +179,9 @@ struct LibraryContentView: View {
                     LoadFailureView(message: message) { Task { await model.load() } }
                 case .loaded:
                     if let content = model.content {
-                        if content.playlists.isEmpty, content.albums.isEmpty, content.artists.isEmpty {
+                        if content.playlists.isEmpty, content.albums.isEmpty, content.artists.isEmpty,
+                           content.podcastShows.isEmpty
+                        {
                             ContentUnavailableView("Your library is empty", systemImage: "music.note.list")
                         } else {
                             ScrollView {
@@ -186,6 +189,7 @@ struct LibraryContentView: View {
                                     self.section(String(localized: "Playlists"), content.playlists.map(MediaEntity.init))
                                     self.section(String(localized: "Albums"), content.albums.map(MediaEntity.init))
                                     self.section(String(localized: "Artists"), content.artists.map(MediaEntity.init))
+                                    self.section(String(localized: "Podcasts"), content.podcastShows.map { MediaEntity($0) })
                                 }
                                 .padding(.vertical)
                             }

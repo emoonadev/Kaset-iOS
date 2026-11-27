@@ -103,7 +103,7 @@ private struct MacMainContent: View {
         .onChange(of: NotificationRouter.shared.pendingEntity, initial: true) { _, entity in
             guard let entity else { return }
             NotificationRouter.shared.pendingEntity = nil
-            if case .song = entity.target {
+            if entity.isPlayableItem {
                 self.environment.playEntity(entity, opensNowPlaying: false)
             } else {
                 self.shell.selection = .home
@@ -128,7 +128,7 @@ private struct MacDetailView: View {
             self.root
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .navigationTitle(Text(self.item.title))
-                .entityDestinations()
+                .entityNavigation(path: self.shell.path(for: self.item))
         }
         // ⌘R rebuilds the stack (the path is kept), so the pages on it load again.
         .id("\(self.item)-\(self.shell.refreshGeneration)")
@@ -173,6 +173,9 @@ private struct MacDetailView: View {
                     BrowsePageView(model: model)
                         .onAppear { self.shell.load(type) }
                 }
+            case .podcasts:
+                PodcastsView(model: self.shell.podcasts())
+                    .onAppear { self.shell.loadPodcasts() }
             case .history:
                 let model = self.shell.browseModel(for: .history)
                 HistoryView(model: model)

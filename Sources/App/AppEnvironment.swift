@@ -42,6 +42,9 @@ final class AppEnvironment {
     /// content (and the account pickers) reload.
     private(set) var accountRevision = 0
 
+    /// Who the API currently answers for: changes on sign-in, sign-out and account switches.
+    var contentScope: String { "\(self.auth.state)-\(self.accountRevision)" }
+
     var isPlaybackDebugPresented = false
 
     /// Presents the sign-in sheet. Each presentation signs in to a fresh data store, so it
@@ -128,6 +131,14 @@ final class AppEnvironment {
                 } else if let first = detail.tracks.first(where: \.isPlayable) {
                     self.player.play(videoId: first.videoId, playlistId: "RDAMVM\(first.videoId)")
                 }
+            }
+        case let .episode(videoId):
+            self.player.play(videoId: videoId)
+        case let .podcast(id):
+            // A show plays from its newest episode.
+            Task {
+                guard let episode = try? await self.client.getPodcastShow(browseId: id).episodes.first else { return }
+                self.player.play(videoId: episode.id)
             }
         case .artist, .mood, .unsupported:
             break

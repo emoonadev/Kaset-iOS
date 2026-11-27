@@ -57,6 +57,14 @@ Legend: `[x]` shipped · `[ ]` planned.
 - [x] Visual Intelligence (Apple Intelligence iPhones): results for the text read on a cover or
       poster; tapping one opens or plays it. An image without text finds nothing
 - [x] Distribution: every release includes an unsigned iOS `.ipa`, with a README guide to install it without Xcode (Sideloadly, AltStore, SideStore)
+- [x] Podcasts (iOS and macOS): a Podcasts page (*Discover → Podcasts*, sidebar on the Mac)
+      with saved shows, then YouTube Music's podcasts page or, where the account does not have
+      it (404, `/podcasts` redirects to Home), the podcast shelves of Home and Explore; show
+      pages with save to library and paginated episodes (date, duration, progress), podcast and
+      episode search filters, artist podcasts, saved shows in the Library
+- [x] Author links (iOS and macOS): the subtitle of every cover and result opens its artist,
+      playlist owner, podcast channel or show (a mix offers each artist); the player opens the
+      show of a podcast episode instead of searching its name
 - [ ] **Verify on device** (code shipped, not yet measured):
   - Siri phrases, the Shortcuts actions, the *Recognise Music* and alarm automations, and
     Visual Intelligence results: none could run in the simulator
@@ -118,7 +126,6 @@ checked first (spike on device).
 ## Out of scope for now
 
 - YouTube-wide search and video playback (a separate client and a real video player)
-- Podcasts
 - Scrobbling (Last.fm, ListenBrainz)
 - Equalizer
 - Live Activity: the system Now Playing card already covers the lock screen and Dynamic Island

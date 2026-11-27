@@ -187,6 +187,7 @@ final class YTMusicClient {
         "FEmusic_library_songs", "FEmusic_recently_played", "FEmusic_offline",
         "FEmusic_library_privately_owned_landing", "FEmusic_library_privately_owned_tracks",
         "FEmusic_library_privately_owned_albums", "FEmusic_library_privately_owned_artists",
+        YTMusicClient.libraryPodcastsBrowseId,
     ]
 
     private func authPolicy(endpoint: String, body: [String: Any]) -> AuthPolicy {
@@ -408,7 +409,7 @@ final class YTMusicAPIKeyResolver {
 /// Result kinds the search screen can restrict to. The `params` strings are the ones kaset's
 /// `YTMusicClient.SearchFilterParams` sends.
 enum SearchFilter: String, CaseIterable, Identifiable {
-    case all, songs, artists, albums, playlists, videos
+    case all, songs, artists, albums, playlists, videos, podcasts, episodes
 
     var id: String { self.rawValue }
 
@@ -420,6 +421,8 @@ enum SearchFilter: String, CaseIterable, Identifiable {
         case .albums: "EgWKAQIYAWoMEA4QChADEAQQCRAF"
         case .artists: "EgWKAQIgAWoMEA4QChADEAQQCRAF"
         case .playlists: "EgWKAQIoAWoMEA4QChADEAQQCRAF"
+        case .podcasts: "EgWKAQJQAWoQEBAQCRAEEAMQBRAKEBUQEQ%3D%3D"
+        case .episodes: "EgWKAQJIAWoMEA4QChADEAQQCRAF"
         }
     }
 
@@ -431,6 +434,8 @@ enum SearchFilter: String, CaseIterable, Identifiable {
         case .albums: "Albums"
         case .playlists: "Playlists"
         case .videos: "Videos"
+        case .podcasts: "Podcasts"
+        case .episodes: "Episodes"
         }
     }
 
@@ -442,6 +447,8 @@ enum SearchFilter: String, CaseIterable, Identifiable {
         case .albums: "square.stack"
         case .playlists: "music.note.list"
         case .videos: "play.rectangle"
+        case .podcasts: "mic"
+        case .episodes: "waveform"
         }
     }
 }

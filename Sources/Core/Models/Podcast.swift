@@ -10,6 +10,8 @@ struct PodcastShow: Identifiable, Hashable, Codable {
     let description: String?
     let thumbnailURL: URL?
     let episodeCount: Int?
+    /// The channel publishing the show (`UC…`), when the response links it.
+    var authorId: String?
 
     /// Whether the show has a valid browse ID for navigation.
     /// Podcast show IDs start with "MPSPP" prefix.

@@ -298,6 +298,16 @@
         }
       }
     },
+    "Adds the podcast to your library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoute le podcast à votre bibliothèque"
+          }
+        }
+      }
+    },
     "Advertisement" : {
       "localizations" : {
         "fr" : {
@@ -591,6 +601,16 @@
         }
       }
     },
+    "Couldn't update your library." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de mettre à jour votre bibliothèque."
+          }
+        }
+      }
+    },
     "Create" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -798,6 +818,26 @@
         }
       }
     },
+    "Episode" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épisode"
+          }
+        }
+      }
+    },
+    "Episodes" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épisodes"
+          }
+        }
+      }
+    },
     "Explore" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -880,6 +920,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Général"
+          }
+        }
+      }
+    },
+    "Go to %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aller à %@"
+          }
+        }
+      }
+    },
+    "Go to Artist" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aller à l’artiste"
           }
         }
       }
@@ -1428,6 +1488,16 @@
         }
       }
     },
+    "No episodes yet." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun épisode pour l’instant."
+          }
+        }
+      }
+    },
     "No liked songs yet" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1446,6 +1516,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pas de paroles"
+          }
+        }
+      }
+    },
+    "No podcasts to show" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun podcast à afficher"
           }
         }
       }
@@ -1708,6 +1788,26 @@
         }
       }
     },
+    "Play Latest" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire le dernier"
+          }
+        }
+      }
+    },
+    "Play Latest Episode" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire le dernier épisode"
+          }
+        }
+      }
+    },
     "Play Next" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1757,6 +1857,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Position de lecture"
+          }
+        }
+      }
+    },
+    "Played" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écouté"
           }
         }
       }
@@ -1838,6 +1948,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lit à partir de cette ligne"
+          }
+        }
+      }
+    },
+    "Podcast" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcast"
+          }
+        }
+      }
+    },
+    "Podcasts" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podcasts"
           }
         }
       }
@@ -2034,6 +2164,16 @@
         }
       }
     },
+    "Removes the podcast from your library" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retire le podcast de votre bibliothèque"
+          }
+        }
+      }
+    },
     "Rename" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2112,6 +2252,16 @@
         }
       }
     },
+    "Saved" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistré"
+          }
+        }
+      }
+    },
     "Search" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2152,6 +2302,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rechercher des artistes"
+          }
+        }
+      }
+    },
+    "Search for a show to find podcasts." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherchez une émission pour trouver des podcasts."
           }
         }
       }
@@ -2247,6 +2407,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Affiche une notification avec le titre et l'artiste à chaque changement de morceau, quand vous passez au suivant ou quand le suivant démarre."
+          }
+        }
+      }
+    },
+    "Shows less" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche moins"
+          }
+        }
+      }
+    },
+    "Shows the full description" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche la description complète"
           }
         }
       }
@@ -2780,6 +2960,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tes playlists"
+          }
+        }
+      }
+    },
+    "Your podcasts" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos podcasts"
           }
         }
       }
