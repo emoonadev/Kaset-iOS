@@ -20,6 +20,8 @@ final class PodcastsModel {
     private(set) var sections: [PodcastSection] = []
     private(set) var phase: Phase = .idle
     private(set) var isLoadingMore = false
+    /// More of YouTube Music's podcasts page can still be loaded.
+    var hasMore: Bool { self.continuationToken != nil }
     /// Next batch of YouTube Music's podcasts page, when that page is the source.
     private var continuationToken: String?
     private var generation = 0
@@ -142,6 +144,27 @@ struct PodcastsView: View {
                     } actions: {
                         Button("Try Again") { Task { await self.model.load(force: true) } }
                     }
+                } else if self.model.sections.count == 1, !self.model.hasMore, let section = self.model.sections.first {
+                    // A lone shelf would fill one row and leave the page empty: show it as a grid.
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 10) {
+                            if !section.title.isEmpty {
+                                Text(section.title)
+                                    .font(.title2.weight(.bold))
+                                    .accessibilityAddTraits(.isHeader)
+                            }
+                            LazyVGrid(
+                                columns: [GridItem(.adaptive(minimum: AdaptiveLayout.gridMinimum), spacing: AdaptiveLayout.cardSpacing, alignment: .top)],
+                                spacing: 20
+                            ) {
+                                ForEach(section.items.map(MediaEntity.init)) { entity in
+                                    MediaActions(entity: entity) { MediaCard(entity: entity, width: nil) }
+                                }
+                            }
+                        }
+                        .padding(AdaptiveLayout.horizontalPadding)
+                    }
+                    .refreshable { await self.model.load(force: true) }
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 32) {
@@ -158,6 +181,10 @@ struct PodcastsView: View {
                     .refreshable { await self.model.load(force: true) }
                 }
             }
+        }
+        // A load stopped before it finished leaves the page idle: start it again when shown.
+        .onAppear {
+            if self.model.phase == .idle { Task { await self.model.load() } }
         }
         // A show saved or removed on its page: "Your podcasts" follows.
         .onChange(of: self.environment.libraryRevision) {

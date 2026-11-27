@@ -63,8 +63,10 @@ struct DiscoverView: View {
                 }
                 await self.models[self.selection]?.load()
             } else {
+                // Not awaited here: SwiftUI can cancel this view task while the page appears,
+                // which would stop the load and leave the page on its spinner.
                 let model = self.podcastsModel()
-                await model.load()
+                Task { await model.load() }
             }
         }
         .onChange(of: self.environment.contentScope) {
