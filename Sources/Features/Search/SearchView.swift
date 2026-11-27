@@ -227,7 +227,7 @@ struct SearchContent: View {
                 self.results
             }
         }
-        .searchable(text: self.$model.query, prompt: "Songs, albums, artists")
+        .searchable(text: self.$model.query, placement: .permanent, prompt: "Songs, albums, artists")
         .searchFocused(self.$isSearchFocused)
         .searchSuggestions {
             // A tap searches right away (as in Apple Music). `searchCompletion` would only
@@ -272,7 +272,7 @@ struct SearchContent: View {
                 Section {
                     ForEach(self.model.recentSearches) { recent in
                         Button {
-                            Task { await self.model.submit(recent.query) }
+                            self.search(recent.query)
                         } label: {
                             Label(recent.query, systemImage: "clock.arrow.circlepath")
                                 .foregroundStyle(.primary)
