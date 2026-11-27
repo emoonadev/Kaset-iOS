@@ -40,6 +40,18 @@ extension ToolbarItemPlacement {
     }
 }
 
+extension SearchFieldPlacement {
+    /// A search field that stays on screen: pinned under the navigation bar on iOS (the default
+    /// drawer hides until the list is pulled down), the window toolbar on macOS.
+    static var permanent: SearchFieldPlacement {
+        #if os(iOS)
+        .navigationBarDrawer(displayMode: .always)
+        #else
+        .automatic
+        #endif
+    }
+}
+
 extension View {
     /// Small inline title on iOS; macOS titles always live in the window toolbar.
     func inlineNavigationTitle() -> some View {
